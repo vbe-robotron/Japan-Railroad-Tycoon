@@ -4,12 +4,13 @@
 - [x] Phase 0-1: プロジェクト初期化
 - [x] Phase 0-2: 共通型
 - [x] Phase 1-1: 基本構造体
+- [x] Phase 1-2: Event型
 
 ## 進行中
-- [ ] Phase 1-2: Event型
+- [ ] Phase 1-3: Action インターフェース
 
 ## 次
-- [ ] Phase 1-2: Event型（60種以上のイベントタイプ）
+- [ ] Phase 1-3: Action インターフェースとレジストリ
 
 ## メモ
 - module: github.com/you/jrt

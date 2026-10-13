@@ -12,6 +12,12 @@
 //   - Event: ゲーム内イベント
 //   - Action: プレイヤー or AI の行動
 //
+// イベント:
+//   - Event: ゲーム内イベント（全アクションが返す）
+//   - 60種以上のタイプ（Event* 定数）
+//   - 主要20種は Payload を構造体化
+//   - ビルダー: With, ForCompany, ForLine, ForCity
+//
 // ID設計:
 //   - 静的データ（Node/City/Company/Event）: 意味的ID（"tokyo", "hankyu"）
 //   - 動的データ（Line/Facility/Game/EventLog）: NanoID（21文字）

@@ -8,12 +8,13 @@
 - [x] Phase 1-3: Action インターフェース
 - [x] Phase 1-4: EndTurnAction
 - [x] Phase 1-5: Sim ヘルパー
+- [x] Phase 1-6: BuildLineAction
 
 ## 進行中
-- [ ] Phase 1-6: BuildLineAction
+- [ ] Phase 1-7: 経済シミュレーション
 
 ## 次
-- [ ] Phase 1-6: BuildLineAction（4ゲートと路線敷設）
+- [ ] Phase 1-7: 経済シミュレーション（収益計算）
 
 ## メモ
 - module: github.com/you/jrt

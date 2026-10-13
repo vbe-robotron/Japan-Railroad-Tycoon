@@ -1,8 +1,9 @@
 package core
 
-// このファイルは Phase 1-4 時点での一時スタブ。
-// 本実装済みのアクション（EndTurnAction）はここから削除済み。
-// Phase 1-5 以降、各アクションの本実装が完了したら、
+// このファイルは Phase 1-6 時点での一時スタブ。
+// 本実装済みのアクション（EndTurnAction, BuildLineAction）は
+// ここから削除済み。
+// Phase 1-7 以降、各アクションの本実装が完了したら、
 // 対応するメソッドをこのファイルから削除する。
 //
 // Validate は状態を変更せず実行可否を検証し、Apply は状態を変更して
@@ -11,12 +12,6 @@ package core
 // ────────────────────────────────────────────
 // 建設系（5種）
 // ────────────────────────────────────────────
-
-// Validate は路線敷設の可否を検証する（スタブ）。
-func (a *BuildLineAction) Validate(g *Game) error { return nil }
-
-// Apply は路線を敷設する（スタブ）。
-func (a *BuildLineAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // Validate は中間駅追加の可否を検証する（スタブ）。
 func (a *BuildStationAction) Validate(g *Game) error { return nil }

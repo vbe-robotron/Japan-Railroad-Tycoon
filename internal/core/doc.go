@@ -46,4 +46,10 @@
 //   - Game.Demand: 旅客需要
 //   - Game.FacilityCost: 施設建設コスト
 //   - Terrain: 地形パラメータ
+//
+// 建設:
+//   - Game.CanBuildLine: 4ゲート判定
+//   - BuildLineAction: 路線敷設
+//   - TechnologyTable: 技術テーブル
+//   - RegulationTable: 法規テーブル
 package core

@@ -12,8 +12,8 @@ import (
 //
 //	収益 = 旅客収入 + 貨物収入 + 不動産収入 + 流通収入 - 維持費 - 減価償却
 //
-// Phase 1-7 では旅客収入・維持費・減価償却のみを実装する。
-// 貨物・不動産・流通収入は Phase 1-8 以降で追加する。
+// Phase 1-8-2 で不動産収入（施設収入）を追加した。
+// 貨物・流通収入は Phase 1-8 以降で追加する。
 
 const (
 	// DaysPerMonth は 1 ヶ月の日数（旅客需要の月次換算に用いる）。
@@ -76,6 +76,12 @@ func (g *Game) simulateCompany(c *Company) []Event {
 
 		// 赤字継続の更新
 		events = append(events, g.updateLineHealth(c, line, profit)...)
+	}
+
+	// 施設収入（不動産）。施設は毎月 Facility.Income を生む。
+	// 沿線開発（阪急モデル）の収益源であり、減価償却とは独立に加算する。
+	for _, f := range c.Facilities {
+		totalRevenue += f.Income
 	}
 
 	// 減価償却（路線: 50 年定額）

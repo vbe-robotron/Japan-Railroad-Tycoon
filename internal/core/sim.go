@@ -72,15 +72,6 @@ var seasonalFactors = [12]float64{
 	1.05, 1.08, 1.00, 1.00, 0.95, 0.95,
 }
 
-// facilityBaseCosts は施設種別ごとの基本建設コスト（円）。
-var facilityBaseCosts = map[string]int64{
-	"department_store": 10_000_000,
-	"housing":          5_000_000,
-	"amusement":        8_000_000,
-	"hotel":            7_000_000,
-	"office":           12_000_000,
-}
-
 // DistanceKm は 2 都市間の距離を km で返す。
 //
 // Haversine 距離に地形係数をかけたものを返す。
@@ -256,9 +247,9 @@ func (g *Game) FacilityCost(city *City, kind string, scale int) int64 {
 	if city == nil {
 		return 0
 	}
-	base, ok := facilityBaseCosts[kind]
-	if !ok {
-		base = 5_000_000
+	base := int64(5_000_000)
+	if def, ok := FacilityByKind(kind); ok {
+		base = def.BaseCost
 	}
 	if scale < 1 {
 		scale = 1

@@ -83,7 +83,7 @@ func setupGame() *core.Game {
 
 func printBanner(g *core.Game) {
     c := g.PlayerCompany()
-    fmt.Println("=== Japan Railroad Tycoon - Play (Phase 1-8-1) ===")
+    fmt.Println("=== Japan Railroad Tycoon - Play (Phase 1-8-2) ===")
     fmt.Printf("%s 設立 (%d年)\n", c.Name, c.FoundedYear)
     fmt.Printf("  資金: %s\n", core.FormatYen(c.Cash))
     fmt.Println()
@@ -95,6 +95,7 @@ func printBanner(g *core.Game) {
     fmt.Println("  lines               路線一覧（収益付き）")
     fmt.Println("  line <id>           路線詳細")
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
+    fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")
@@ -144,6 +145,13 @@ func handleCommand(g *core.Game, line string) bool {
             return true
         }
         cmdSetFare(g, parts[1], fare)
+    case "build-facility", "bf":
+        if len(parts) < 3 {
+            fmt.Println("使い方: build-facility <city> <kind> [--scale N]")
+            fmt.Println("  kind: department_store | housing | amusement | hotel | office")
+            return true
+        }
+        cmdBuildFacility(g, parts)
     case "et":
         cmdEndTurn(g, 1)
     case "turn":
@@ -308,6 +316,28 @@ func cmdSetFare(g *core.Game, lineID string, fare int) {
     printEvents(events)
 }
 
+// cmdBuildFacility は施設建設アクションを適用する。
+//
+// kind は department_store | housing | amusement | hotel | office。
+// --scale N で規模（1〜5、既定値 1）を指定する。
+func cmdBuildFacility(g *core.Game, parts []string) {
+    cityID, kind := parts[1], parts[2]
+    scale := 1
+    for i := 3; i < len(parts); i++ {
+        if parts[i] == "--scale" && i+1 < len(parts) {
+            scale, _ = strconv.Atoi(parts[i+1])
+            i++
+        }
+    }
+    a := &core.BuildFacilityAction{CityID: cityID, Kind: kind, Scale: scale}
+    events, err := a.Apply(g)
+    if err != nil {
+        fmt.Printf("✗ %v\n", err)
+        return
+    }
+    printEvents(events)
+}
+
 func cmdEndTurn(g *core.Game, n int) {
     for i := 0; i < n; i++ {
         events := g.EndTurn()
@@ -326,6 +356,7 @@ func cmdHelp() {
     fmt.Println("  lines               路線一覧（収益付き）")
     fmt.Println("  line <id>           路線詳細")
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
+    fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")

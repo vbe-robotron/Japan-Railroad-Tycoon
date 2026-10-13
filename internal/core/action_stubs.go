@@ -1,9 +1,9 @@
 package core
 
-// このファイルは Phase 1-8-1 時点での一時スタブ。
-// 本実装済みのアクション（EndTurnAction, BuildLineAction, SetFareAction）は
-// ここから削除済み。
-// Phase 1-8-2 以降、各アクションの本実装が完了したら、
+// このファイルは Phase 1-8-2 時点での一時スタブ。
+// 本実装済みのアクション（EndTurnAction, BuildLineAction,
+// SetFareAction, BuildFacilityAction）はここから削除済み。
+// Phase 1-8-3 以降、各アクションの本実装が完了したら、
 // 対応するメソッドをこのファイルから削除する。
 //
 // Validate は状態を変更せず実行可否を検証し、Apply は状態を変更して
@@ -18,12 +18,6 @@ func (a *BuildStationAction) Validate(g *Game) error { return nil }
 
 // Apply は中間駅を追加する（スタブ）。
 func (a *BuildStationAction) Apply(g *Game) ([]Event, error) { return nil, nil }
-
-// Validate は施設建設の可否を検証する（スタブ）。
-func (a *BuildFacilityAction) Validate(g *Game) error { return nil }
-
-// Apply は施設を建設する（スタブ）。
-func (a *BuildFacilityAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // Validate は車庫・工場・発電所建設の可否を検証する（スタブ）。
 func (a *BuildDepotAction) Validate(g *Game) error { return nil }

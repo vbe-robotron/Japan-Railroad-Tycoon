@@ -25,7 +25,7 @@
 //   - Validate は状態を変更しない
 //   - Apply は []Event を返す
 //   - 本実装済み: EndTurnAction（ターン進行）、BuildLineAction（路線敷設）、
-//     SetFareAction（運賃変更）
+//     SetFareAction（運賃変更）、BuildFacilityAction（施設建設・開発度上昇）
 //
 // ターン進行:
 //   - Game.EndTurn(): 1ヶ月進める
@@ -61,6 +61,7 @@
 //   - Game.linePassengers(): 旅客数
 //   - Game.lineShare(): 市場シェア
 //   - Game.calculateDepreciation(): 減価償却
+//   - Facility.Income: 施設の月次収入（不動産収入）
 //   - Game.updateLineHealth(): 赤字・黒字転換イベント
 //   - Company.MonthlyProfit(): 月次営業利益
 //   - Company.AnnualProfit(): 年次営業利益（推定）

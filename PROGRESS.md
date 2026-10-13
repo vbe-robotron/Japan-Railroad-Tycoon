@@ -15,12 +15,13 @@
 - [x] Phase 1-7.7: 需要モデルのべき乗則化（指数 0.6、MaintenancePerKm 再スケール）
 - [x] Phase 1-7.8: 目標再定義と開発強化（Developed 効果 5 倍、阪急モデル）
 - [x] Phase 1-8-1: SetFareAction（運賃変更、TDD 適用）
+- [x] Phase 1-8-2: BuildFacilityAction（施設建設・開発度上昇・不動産収入）
 
 ## 進行中
-- [ ] Phase 1-8-2: BuildFacilityAction
+- [ ] Phase 1-8-3: AbandonLineAction
 
 ## 次
-- [ ] Phase 1-8-2: BuildFacilityAction（開発度を上げる）
+- [ ] Phase 1-8-3: AbandonLineAction（廃線判断）
 
 ## メモ
 - module: github.com/you/jrt
@@ -154,3 +155,40 @@
     6,580円 → 29,080円に増加することを検証。
   - テスト: `action_set_fare_test.go`（Type / Validate 7 種 / Apply 3 種 /
     効果検証 / 決定論 / レジストリ経由）を追加。
+- Phase 1-8-2 の BuildFacilityAction（施設建設・開発度上昇・不動産収入、TDD 適用）:
+  - **TDD（Red → Green）を適用**。先に `action_build_facility_test.go` を作成し、
+    スタブ実装のまま失敗を確認（Red）。次に本実装して全 PASS（Green）。
+  - `facility.go` に `FacilityDef` / `FacilityTable` / `FacilityByKind` /
+    `ScaleDevelopFactor` と種類定数を追加。`sim.go` の重複していた
+    `facilityBaseCosts` を廃止し、`FacilityCost` は `FacilityTable` を参照する。
+  - `action_stubs.go` から `BuildFacilityAction` の Validate/Apply を削除
+    （スタブは 22 種 → **21 種**）。`action_stubs_test.go` の除外 switch に
+    `*BuildFacilityAction` を追加。`doc.go` を更新。
+  - 実装:
+    - `Validate`: nil ゲーム（GAME_NIL）、プレイヤーなし（NO_PLAYER +
+      ErrNoPlayer）、都市なし（CITY_NOT_FOUND + ErrCityNotFound）、未知の種類
+      （UNKNOWN_FACILITY_KIND）、規模範囲外（INVALID_SCALE）、他社所有
+      （OWNED_BY_OTHER + ErrUnauthorized）、資金不足（INSUFFICIENT_FUNDS +
+      ErrInsufficientFunds）を検証。Validate は状態を変更しない。
+    - `Apply`: 建設コストを支払い、`Facility` を生成して `Company.Facilities`
+      に追加。開発度を `DevelopGain × ScaleDevelopFactor(Scale)` だけ上昇
+      （上限 1.0）、`OwnerID` を自社に設定し、`recalcCityDemand` で需要を再計算。
+      `facility_built` と `facility_effect` の 2 イベントを生成。
+      `Facility.Income = 建設コスト × IncomeRate`（月次）。
+  - 開発度上昇 = `BaseDevelopGain × (1.0 + (Scale-1)×0.3)`。
+    例: department_store scale3 = 0.15 × 1.6 = 0.24。
+  - `economy.go` の `simulateCompany` に施設収入（不動産）を統合。
+    毎ターン `Facility.Income` が資金に加算される。
+  - 制約/数値（`FacilityTable`）: 百貨店 1000万/0.15/0.008、住宅 500万/0.20/0.005、
+    遊園地 800万/0.10/0.007、ホテル 700万/0.08/0.006、オフィス 1200万/0.12/0.009。
+  - テスト作成時の仕様矛盾を修正: プロンプトのテストは初期資金 900 万円だが、
+    自身が建てる施設（housing scale2 = 1,100 万円、department_store scale3 =
+    3,300 万円）すら支払えず INSUFFICIENT_FUNDS で失敗するため、検証用ゲームの
+    初期資金を **100,000,000 円** に引き上げ、`Validate_OK` の資金アサーションを
+    合わせて更新した（Phase 1-8-1 の未使用変数修正と同種の対処）。
+  - 効果検証（`cmd/play`、梅田〜宝塚 19.1km/200円）:
+    - 施設なし: 開発度 0.00、月次利益 1.9万円、営業係数 74.2
+    - 宝塚に住宅 scale1（コスト 350万円、開発度 +0.20、収入 1.75万円/月）:
+      開発度 0.20、月次利益 3.7万円、営業係数 59.4（**14.8 ポイント改善**）
+  - テスト: `action_build_facility_test.go`（Type / Validate 7 種 / Apply 3 種 /
+    施設収入 4 種 / 決定論 / レジストリ経由 / テーブル・規模補正）を追加。

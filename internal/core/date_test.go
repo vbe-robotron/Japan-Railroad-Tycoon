@@ -1,6 +1,9 @@
 package core
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 func TestDate_String(t *testing.T) {
 	tests := []struct {
@@ -139,6 +142,8 @@ func TestNewDate_Normalize(t *testing.T) {
 		{"月25は2年後の1月", 1910, 25, Date{1912, 1}},
 		{"月-1は前年11月", 1910, -1, Date{1909, 11}},
 		{"12月はそのまま", 1910, 12, Date{1910, 12}},
+		{"負の年", -1, 6, Date{-1, 6}},
+		{"負の年月0", -1, 0, Date{-2, 12}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -146,5 +151,98 @@ func TestNewDate_Normalize(t *testing.T) {
 				t.Errorf("NewDate(%d, %d) = %+v, want %+v", tt.year, tt.month, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestFloorDiv(t *testing.T) {
+	tests := []struct {
+		name string
+		a, b int
+		want int
+	}{
+		{"正の割り切れる", 24, 12, 2},
+		{"正の端数", 25, 12, 2},
+		{"零", 0, 12, 0},
+		{"負の割り切れる", -24, 12, -2},
+		{"負の端数は切り下げ", -7, 12, -1},
+		{"負の端数2", -13, 12, -2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := floorDiv(tt.a, tt.b); got != tt.want {
+				t.Errorf("floorDiv(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFloorMod(t *testing.T) {
+	tests := []struct {
+		name string
+		a, b int
+		want int
+	}{
+		{"正", 25, 12, 1},
+		{"零", 24, 12, 0},
+		{"負の剰余は正へ", -7, 12, 5},
+		{"負の剰余2", -1, 12, 11},
+		{"負の割り切れる", -24, 12, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := floorMod(tt.a, tt.b); got != tt.want {
+				t.Errorf("floorMod(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDate_AddMonths_Negative(t *testing.T) {
+	tests := []struct {
+		name string
+		date Date
+		n    int
+		want Date
+	}{
+		{"負の年で0ヶ月", Date{-1, 6}, 0, Date{-1, 6}},
+		{"0年1月の1ヶ月前", Date{0, 1}, -1, Date{-1, 12}},
+		{"1910年1月の1ヶ月前", Date{1910, 1}, -1, Date{1909, 12}},
+		{"負の年の前進", Date{-1, 6}, 12, Date{0, 6}},
+		{"負の年から負へ", Date{-1, 6}, -13, Date{-2, 5}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.date.AddMonths(tt.n); got != tt.want {
+				t.Errorf("%+v.AddMonths(%d) = %+v, want %+v", tt.date, tt.n, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDate_AddMonths_FloorDiv(t *testing.T) {
+	// floor 除算が使われていなければ月が 1-12 の範囲外になるケース。
+	d := Date{-1, 6}
+	got := d.AddMonths(0)
+	if got.Month < 1 || got.Month > 12 {
+		t.Fatalf("AddMonths(0) の月が範囲外: %+v", got)
+	}
+	if got != (Date{-1, 6}) {
+		t.Fatalf("AddMonths(0) = %+v, want {-1 6}", got)
+	}
+}
+
+func TestDate_AddMonths_Random(t *testing.T) {
+	r := rand.New(rand.NewSource(1907))
+	for i := 0; i < 1000; i++ {
+		d := NewDate(r.Intn(4000)-2000, r.Intn(24)-12)
+		n := r.Intn(2401) - 1200
+		back := d.AddMonths(n).AddMonths(-n)
+		if back != d {
+			t.Fatalf("case %d: %+v.AddMonths(%d).AddMonths(%d) = %+v, want %+v",
+				i, d, n, -n, back, d)
+		}
+		if back.Month < 1 || back.Month > 12 {
+			t.Fatalf("case %d: 月が範囲外: %+v", i, back)
+		}
 	}
 }

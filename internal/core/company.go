@@ -46,16 +46,43 @@ func NewCompany(id, groupID, name string) *Company {
 
 // NetAssets は純資産（Cash - Debt）の簡易値を返す。
 //
-// Phase 1-7 で資産・減価償却を加味した精緻な計算に置き換える予定。
+// 路線など固定資産を含めない簡易値。固定資産を含める場合は
+// NetAssetsWithLines を使う。
 func (c *Company) NetAssets() int64 {
 	return c.Cash - c.Debt
 }
 
-// MonthlyProfit は直近月次の利益を返す。
+// NetAssetsWithLines は純資産に路線価値を加えたものを返す。
 //
-// Phase 1-7 で実装する。現時点では 0 を返すスタブ。
-func (c *Company) MonthlyProfit() int64 {
-	return 0
+// 路線価値は敷設コスト相当（距離 × BaseCostPerKm）とみなす簡易評価。
+// 車両・施設の評価は Phase 1-8 以降で追加する。
+func (c *Company) NetAssetsWithLines(g *Game) int64 {
+	total := c.NetAssets()
+	for _, l := range c.Lines {
+		total += int64(l.LengthKm * float64(BaseCostPerKm))
+	}
+	return total
+}
+
+// MonthlyProfit は直近月の営業利益を返す。
+//
+// 路線の Profit 合計から月次減価償却を差し引いた値。
+// 路線がない場合は減価償却 0 のため 0 を返す。
+func (c *Company) MonthlyProfit(g *Game) int64 {
+	var total int64
+	for _, l := range c.Lines {
+		total += l.Profit
+	}
+	total -= g.calculateDepreciation(c)
+	return total
+}
+
+// AnnualProfit は直近 12 ヶ月の営業利益を推定する。
+//
+// Phase 1-7 では MonthlyProfit × 12 の簡易版。
+// Phase 1-8 以降で履歴ベースに精緻化する。
+func (c *Company) AnnualProfit(g *Game) int64 {
+	return c.MonthlyProfit(g) * 12
 }
 
 // AddLine は路線を追加する。

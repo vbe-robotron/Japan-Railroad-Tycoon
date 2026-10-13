@@ -175,3 +175,74 @@ func TestEndTurn_Deterministic(t *testing.T) {
 		}
 	}
 }
+
+// endTurnEcoGame は経済計算の検証用に路線を 1 本持つゲームを返す。
+func endTurnEcoGame(t *testing.T) (*Game, *Company, *Line) {
+	t.Helper()
+	g := NewGame(1907, "hankyu")
+	g.Date = Date{Year: 1910, Month: 6}
+	g.AddCity(&City{ID: "a", Name: "A", Population: 100000})
+	g.AddCity(&City{ID: "b", Name: "B", Population: 100000})
+
+	c := NewCompany("hankyu", "hankyu", "阪急")
+	c.Cash = 10_000_000
+	g.AddCompany(c)
+
+	act := &BuildLineAction{From: "a", To: "b", Gauge: 1067}
+	if _, err := act.Apply(g); err != nil {
+		t.Fatalf("BuildLineAction: %v", err)
+	}
+	return g, c, c.Lines[0]
+}
+
+func TestEndTurn_WithEconomy(t *testing.T) {
+	g, _, line := endTurnEcoGame(t)
+
+	// 敷設直後はまだ経済計算されていない
+	if line.Profit != 0 {
+		t.Fatalf("敷設直後の Profit = %d, want 0", line.Profit)
+	}
+
+	g.EndTurn()
+
+	// EndTurn で経済計算が走り、Line.Profit が更新される
+	if line.Profit == 0 {
+		t.Errorf("EndTurn 後に Line.Profit = 0（経済計算が呼ばれていない）")
+	}
+	if line.OperatingRatio == 0 {
+		t.Errorf("EndTurn 後に Line.OperatingRatio = 0（更新されていない）")
+	}
+	if !hasEventType(g.Events, EventTurnEnded) {
+		t.Error("turn_ended イベントが生成されなかった")
+	}
+}
+
+func TestEndTurn_CashChange(t *testing.T) {
+	g, c, _ := endTurnEcoGame(t)
+
+	before := c.Cash
+	g.EndTurn()
+
+	if c.Cash == before {
+		t.Errorf("資金が変化していない: %d", c.Cash)
+	}
+	// 黒字路線なので資金は増えるはず
+	if c.Cash <= before {
+		t.Errorf("黒字路線で資金が増えていない: before=%d, after=%d", before, c.Cash)
+	}
+}
+
+func TestEndTurn_NoLines(t *testing.T) {
+	g := NewGame(1907, "hankyu")
+	g.Date = Date{Year: 1910, Month: 6}
+	c := NewCompany("hankyu", "hankyu", "阪急")
+	c.Cash = 1_000_000
+	g.AddCompany(c)
+
+	before := c.Cash
+	g.EndTurn()
+
+	if c.Cash != before {
+		t.Errorf("路線なしで資金が変化した: before=%d, after=%d", before, c.Cash)
+	}
+}

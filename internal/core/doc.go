@@ -52,4 +52,15 @@
 //   - BuildLineAction: 路線敷設
 //   - TechnologyTable: 技術テーブル
 //   - RegulationTable: 法規テーブル
+//
+// 経済シミュレーション:
+//   - Game.simulateEconomy(): 全社の月次経済
+//   - Game.simulateLine(): 路線ごとの収入・コスト
+//   - Game.linePassengers(): 旅客数
+//   - Game.lineShare(): 市場シェア
+//   - Game.calculateDepreciation(): 減価償却
+//   - Game.updateLineHealth(): 赤字・黒字転換イベント
+//   - Company.MonthlyProfit(): 月次営業利益
+//   - Company.AnnualProfit(): 年次営業利益（推定）
+//   - Company.NetAssetsWithLines(): 路線価値を含む純資産
 package core

@@ -71,9 +71,62 @@ func TestCompany_NetAssets(t *testing.T) {
 }
 
 func TestCompany_MonthlyProfit(t *testing.T) {
+	g := NewGame(1907, "hankyu")
 	c := NewCompany("c", "", "C")
-	if got := c.MonthlyProfit(); got != 0 {
-		t.Errorf("MonthlyProfit() = %d, want 0 (スタブ)", got)
+
+	// 路線なし → 0
+	if got := c.MonthlyProfit(g); got != 0 {
+		t.Errorf("路線なし MonthlyProfit = %d, want 0", got)
+	}
+
+	// 路線利益のみ（減価償却 0）
+	l := NewLine("l1", "c", "a", "b")
+	l.Profit = 1000
+	c.AddLine(l)
+	if got := c.MonthlyProfit(g); got != 1000 {
+		t.Errorf("MonthlyProfit = %d, want 1000", got)
+	}
+
+	// 減価償却を差し引く: 60km → 価値 300000 → 月次償却 500
+	l.LengthKm = 60
+	if got := c.MonthlyProfit(g); got != 500 {
+		t.Errorf("MonthlyProfit（減価償却後） = %d, want 500", got)
+	}
+}
+
+func TestCompany_AnnualProfit(t *testing.T) {
+	g := NewGame(1907, "hankyu")
+	c := NewCompany("c", "", "C")
+
+	if got := c.AnnualProfit(g); got != 0 {
+		t.Errorf("路線なし AnnualProfit = %d, want 0", got)
+	}
+
+	l := NewLine("l1", "c", "a", "b")
+	l.Profit = 1000
+	c.AddLine(l)
+	if got := c.AnnualProfit(g); got != 12000 {
+		t.Errorf("AnnualProfit = %d, want 12000", got)
+	}
+}
+
+func TestCompany_NetAssetsWithLines(t *testing.T) {
+	g := NewGame(1907, "hankyu")
+	c := NewCompany("c", "", "C")
+	c.Cash = 1000
+	c.Debt = 400
+
+	// 路線なしは NetAssets と同じ
+	if got := c.NetAssetsWithLines(g); got != 600 {
+		t.Errorf("路線なし NetAssetsWithLines = %d, want 600", got)
+	}
+
+	// 路線価値: 10km × 5000 = 50000
+	l := NewLine("l1", "c", "a", "b")
+	l.LengthKm = 10
+	c.AddLine(l)
+	if got := c.NetAssetsWithLines(g); got != 50600 {
+		t.Errorf("NetAssetsWithLines = %d, want 50600", got)
 	}
 }
 

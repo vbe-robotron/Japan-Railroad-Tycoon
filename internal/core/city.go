@@ -9,6 +9,8 @@ type City struct {
 	Name               string   `json:"name"`
 	Prefecture         string   `json:"prefecture"`
 	RepresentativeNode string   `json:"representative_node"` // NodeID
+	Lat                float64  `json:"lat,omitempty"`       // 緯度（実座標）
+	Lon                float64  `json:"lon,omitempty"`       // 経度（実座標）
 	Population         int      `json:"population"`
 	LandValue          int      `json:"land_value"` // 地価係数 0-100
 	Demand             int      `json:"demand"`

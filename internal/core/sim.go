@@ -78,10 +78,14 @@ func (g *Game) DistanceKmWithTerrain(from, to *City, terrain TerrainKind) float6
 
 // cityLatLon は都市の緯度経度を返す。
 //
-// Phase 1-5 の暫定実装: City ID のハッシュから決定論的に
+// City.Lat/Lon が設定されていれば実座標を返す。未設定の場合は
+// Phase 1-5 の暫定実装として City ID のハッシュから決定論的に
 // 日本の緯度経度範囲（北緯 30-46、東経 128-146）にマッピングする。
 // Phase 7 で nodes.json を読み込んだら、Node の座標を使うように差し替える。
 func (g *Game) cityLatLon(c *City) (float64, float64) {
+	if c.Lat != 0 && c.Lon != 0 {
+		return c.Lat, c.Lon
+	}
 	h := fnv.New64a()
 	h.Write([]byte(c.ID))
 	v := h.Sum64()

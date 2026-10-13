@@ -1,0 +1,10 @@
+{
+  "id": "vanilla",
+  "name": "Vanilla Japan",
+  "version": "0.1.0",
+  "author": "JRT Team",
+  "description": "日本の全駅を再現",
+  "dependencies": [],
+  "load_order": 0,
+  "files": {}
+}

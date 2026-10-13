@@ -23,15 +23,32 @@ const BaseCostPerKm = 250000
 
 // MaintenancePerKm は維持費の基本単価（円/km/月）。
 //
-// Phase 1-7.5 で 1000 → 20000 に引き上げた。史実の私鉄の営業係数
-// （コスト/収入）70-90 に近づけるための調整。
-const MaintenancePerKm = 20000
+// Phase 1-7.5 で 1000 → 20000 に引き上げ、史実の私鉄の営業係数
+// （コスト/収入）70-90 に近づけた。
+//
+// Phase 1-7.7 では需要モデルを人口のべき乗則（指数 0.6）へ変更した。
+// これにより同じ人口でも旅客収入がおおむね 1/6 程度まで低下するため、
+// 営業係数を維持するには維持費単価も同じ比率でスケールさせる必要がある。
+// 梅田〜宝塚（人口 12 万＋3 万）で 20000 → 2800（約 1/7.1）とした。
+// これにより同路線の営業係数は 70-90 を維持し、田舎路線も 150-200 を
+// 維持する（需要のべき乗則化と営業係数維持の両立には不可欠な調整）。
+const MaintenancePerKm = 2800
 
 // FareElasticity は運賃弾力性（需要への影響）。
 const FareElasticity = -0.7
 
-// DemandBase は旅客需要の基本係数（Population / DemandBase）。
+// DemandBase は旅客需要の基準人口（人）。
+//
+// Phase 1-7.7 以降、需要は人口のべき乗則となり、この値を基準に
+// 正規化する: (Population / DemandBase)^DemandExponent。
 const DemandBase = 1000
+
+// DemandExponent は旅客需要の人口に対するべき指数。
+//
+// 都市の鉄道需要は人口の 0.5〜0.7 乗に比例するという交通工学の
+// 経験則（グラビティモデル）の中間値 0.6 を採用する。
+// 大都市でも需要が人口に線形比例して過大にならないようにする。
+const DemandExponent = 0.6
 
 // seasonalFactors は月ごとの季節係数（0.9-1.1）。
 var seasonalFactors = [12]float64{
@@ -164,12 +181,20 @@ func (g *Game) DefaultFare(fromID, toID string) int {
 
 // Demand は都市の旅客需要を返す。
 //
-// Demand = (Population / DemandBase) × (1 + Developed) × SeasonalFactor
+// Phase 1-7.7 で人口に線形比例するモデルからべき乗則へ変更した。
+//
+//	Demand = (Population / DemandBase)^0.6 × (1 + Developed) × SeasonalFactor
+//
+// 指数 0.6 は交通工学の経験則（鉄道需要は人口の 0.5〜0.7 乗）に基づく。
+// これにより大都市（例: 神戸 40 万）の需要が人口に線形比例して
+// 過大になるのを防ぎ、大都市間路線の営業係数を現実的な範囲に収める。
 func (g *Game) Demand(city *City) int {
 	if city == nil {
 		return 0
 	}
-	base := float64(city.Population) / DemandBase
+	// べき乗則（基準人口で正規化）
+	base := math.Pow(float64(city.Population), DemandExponent) /
+		math.Pow(DemandBase, DemandExponent)
 	developed := 1.0 + city.Developed
 	seasonal := g.SeasonalFactor()
 	return int(base * developed * seasonal)

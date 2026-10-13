@@ -12,8 +12,8 @@ import "fmt"
 //   - 都市の所有者（OwnerID）を自社にする
 //   - 施設収入（Facility.Income）を毎月得る
 //
-// 開発度は Game.Demand の需要倍率（1.0 + Developed×4.0）を通じて旅客需要を
-// 押し上げるため、沿線開発が路線の収益を大きく改善する。
+// 開発度は Game.Demand の需要倍率（1.0 + Developed×1.0）を通じて旅客需要を
+// 押し上げるため、沿線開発が路線の収益を改善する（Phase 1-8-2.5 で 4.0 → 1.0）。
 
 // Validate は BuildFacilityAction が実行可能かどうかを検証する。
 //

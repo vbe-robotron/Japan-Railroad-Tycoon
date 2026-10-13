@@ -25,12 +25,17 @@ type FacilityDef struct {
 //
 // 種類（Kind）から FacilityDef を引く。基本コストは Game.FacilityCost が
 // 地価・規模補正を掛ける前の値である。
+//
+// Phase 1-8-2.5 では開発が強すぎた（施設収入で資金が余り、投資回収が
+// 短すぎた）ため、基本コストを旧比 0.6 倍（40% 削減）、収入率を旧比
+// 0.625 倍に調整した。これにより開発効果と施設収入が抑えられ、旧実測
+// （1931 年: 資金 62 倍・年率 19%）から目標（24 年 5〜10 倍）に近づく。
 var FacilityTable = map[string]FacilityDef{
-	FacilityDepartmentStore: {FacilityDepartmentStore, "百貨店", 10_000_000, 0.15, 0.008},
-	FacilityHousing:         {FacilityHousing, "住宅地", 5_000_000, 0.20, 0.005},
-	FacilityAmusement:       {FacilityAmusement, "遊園地", 8_000_000, 0.10, 0.007},
-	FacilityHotel:           {FacilityHotel, "ホテル", 7_000_000, 0.08, 0.006},
-	FacilityOffice:          {FacilityOffice, "オフィス", 12_000_000, 0.12, 0.009},
+	FacilityDepartmentStore: {FacilityDepartmentStore, "百貨店", 6_000_000, 0.15, 0.005},
+	FacilityHousing:         {FacilityHousing, "住宅地", 3_000_000, 0.20, 0.003},
+	FacilityAmusement:       {FacilityAmusement, "遊園地", 4_800_000, 0.10, 0.004},
+	FacilityHotel:           {FacilityHotel, "ホテル", 4_200_000, 0.08, 0.0035},
+	FacilityOffice:          {FacilityOffice, "オフィス", 7_200_000, 0.12, 0.0055},
 }
 
 // FacilityByKind は種類から定義を返す。

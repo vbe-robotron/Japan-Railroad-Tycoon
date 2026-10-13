@@ -182,17 +182,17 @@ func TestDemand(t *testing.T) {
 	g := simGame()
 	g.Date = Date{Year: 1907, Month: 6} // 季節係数 1.00
 
-	// Phase 1-7.8: 需要はべき乗則 (Population/DemandBase)^0.6 に
-	// 開発度倍率 (1 + Developed×4.0) を掛けたもの（Developed=0 は 1.0 倍）。
+	// Phase 1-8-2.5: 需要はべき乗則 (Population/DemandBase)^0.6 に
+	// 開発度倍率 (1 + Developed×1.0) を掛けたもの（Developed=0 は 1.0 倍）。
 	base := &City{ID: "x", Population: 100000, Developed: 0.0}
 	if got := g.Demand(base); got != 15 {
 		t.Errorf("Demand(base) = %d, want 15", got)
 	}
 
-	// 開発度 0.5 → 需要倍率 3.0 倍。base=15.84（100^0.6）、15.84×3.0=47.5 → 47
+	// 開発度 0.5 → 需要倍率 1.5 倍。base=15.84（100^0.6）、15.84×1.5=23.7 → 23
 	dev := &City{ID: "x", Population: 100000, Developed: 0.5}
-	if got := g.Demand(dev); got != 47 {
-		t.Errorf("Demand(developed=0.5) = %d, want 47", got)
+	if got := g.Demand(dev); got != 23 {
+		t.Errorf("Demand(developed=0.5) = %d, want 23", got)
 	}
 
 	small := &City{ID: "x", Population: 50000, Developed: 0.0}
@@ -270,12 +270,12 @@ func TestFacilityCost(t *testing.T) {
 	g := simGame()
 	city := &City{ID: "x", LandValue: 50} // landFactor = 1.0
 
-	// 種類既知
-	if got := g.FacilityCost(city, "housing", 1); got != 5_000_000 {
-		t.Errorf("FacilityCost(housing, 1) = %d, want 5000000", got)
+	// 種類既知（Phase 1-8-2.5 で基本コストを旧比 0.6 倍に削減）
+	if got := g.FacilityCost(city, "housing", 1); got != 3_000_000 {
+		t.Errorf("FacilityCost(housing, 1) = %d, want 3000000", got)
 	}
-	if got := g.FacilityCost(city, "office", 2); got != 24_000_000 {
-		t.Errorf("FacilityCost(office, 2) = %d, want 24000000", got)
+	if got := g.FacilityCost(city, "office", 2); got != 14_400_000 {
+		t.Errorf("FacilityCost(office, 2) = %d, want 14400000", got)
 	}
 	// 種類未知は既定値 5,000,000
 	if got := g.FacilityCost(city, "unknown", 1); got != 5_000_000 {
@@ -289,11 +289,11 @@ func TestFacilityCost(t *testing.T) {
 	if !(cl < ch) {
 		t.Errorf("地価補正が不正: land=0 → %d, land=100 → %d", cl, ch)
 	}
-	if cl != 2_500_000 {
-		t.Errorf("FacilityCost(land=0) = %d, want 2500000", cl)
+	if cl != 1_500_000 {
+		t.Errorf("FacilityCost(land=0) = %d, want 1500000", cl)
 	}
-	if ch != 7_500_000 {
-		t.Errorf("FacilityCost(land=100) = %d, want 7500000", ch)
+	if ch != 4_500_000 {
+		t.Errorf("FacilityCost(land=100) = %d, want 4500000", ch)
 	}
 	if got := g.FacilityCost(nil, "housing", 1); got != 0 {
 		t.Errorf("FacilityCost(nil) = %d, want 0", got)

@@ -328,8 +328,8 @@ func TestFacilityByKind(t *testing.T) {
 	if !ok {
 		t.Fatal("housing が見つからない")
 	}
-	if def.BaseCost != 5_000_000 {
-		t.Errorf("housing BaseCost = %d, want 5000000", def.BaseCost)
+	if def.BaseCost != 3_000_000 {
+		t.Errorf("housing BaseCost = %d, want 3000000", def.BaseCost)
 	}
 	if _, ok := FacilityByKind("unknown"); ok {
 		t.Error("unknown が見つかった")
@@ -396,8 +396,9 @@ func setupFacilityTestGame() *Game {
 	})
 
 	hankyu := NewCompany("hankyu", "hankyu", "阪急")
-	// 施設建設テストでは高額施設（百貨店 規模5 で最大 5,500 万円）を建てる
-	// ため、十分な初期資金を持たせる。
+	// 施設建設テストでは高額施設（百貨店 規模5・梅田の地価 60 で最大 3,300 万円。
+	// Phase 1-8-2.5 で基本コストを旧比 0.6 倍に削減）を建てるため、
+	// 十分な初期資金を持たせる。
 	hankyu.Cash = 100_000_000
 	g.AddCompany(hankyu)
 

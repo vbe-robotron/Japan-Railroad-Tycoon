@@ -5,6 +5,13 @@ package core
 // 需要は人口・開発度（Game.Demand）に加え、接続路線数による
 // ボーナスを受ける。路線敷設や廃線のたびに再計算する。
 
+// RecalcCityDemand は都市の需要を再計算する（公開版）。
+//
+// CLI・GUI・外部ツールから呼べるようにエクスポートしている。
+func (g *Game) RecalcCityDemand(c *City) {
+	g.recalcCityDemand(c)
+}
+
 // recalcCityDemand は都市の需要を再計算する。
 //
 // 需要は以下に依存:

@@ -105,7 +105,7 @@ func (a *BuildFacilityAction) Apply(g *Game) ([]Event, error) {
 	city.OwnerID = c.ID
 
 	// 需要再計算（開発度上昇を需要へ反映）
-	g.recalcCityDemand(city)
+	g.RecalcCityDemand(city)
 
 	events := []Event{
 		g.Success(EventFacilityBuilt,

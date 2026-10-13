@@ -47,6 +47,31 @@ func TestRecalcCityDemand(t *testing.T) {
 	}
 }
 
+// TestRecalcCityDemand_Exported は公開版 RecalcCityDemand が内部版と
+// 同じ結果を返すことを検証する。
+func TestRecalcCityDemand_Exported(t *testing.T) {
+	g := demandGame()
+	c := g.Cities["a"]
+
+	// nil でも panic しない
+	g.RecalcCityDemand(nil)
+
+	hankyu := g.PlayerCompany()
+	hankyu.AddLine(NewLine("L1", "hankyu", "a", "b"))
+	g.RecalcCityDemand(c)
+
+	// 公開版と内部版は同一結果
+	want := c.Demand
+	c.Demand = 0
+	g.recalcCityDemand(c)
+	if c.Demand != want {
+		t.Errorf("公開版と内部版の結果が異なる: %d vs %d", want, c.Demand)
+	}
+	if c.Demand != int(float64(g.Demand(c))*1.1) {
+		t.Errorf("接続ボーナスが反映されていない: %d", c.Demand)
+	}
+}
+
 func TestCountConnections(t *testing.T) {
 	g := demandGame()
 

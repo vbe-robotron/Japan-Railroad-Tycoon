@@ -18,7 +18,10 @@ type Sim struct{}
 const BaseCostPerKm = 5000
 
 // MaintenancePerKm は維持費の基本単価（円/km/月）。
-const MaintenancePerKm = 1000
+//
+// Phase 1-7.5 で 1000 → 20000 に引き上げた。史実の私鉄の営業係数
+// （コスト/収入）70-90 に近づけるための調整。
+const MaintenancePerKm = 20000
 
 // FareElasticity は運賃弾力性（需要への影響）。
 const FareElasticity = -0.7

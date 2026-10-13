@@ -51,9 +51,9 @@ func TestSimulateLine_Cost(t *testing.T) {
 
 	_, cost := g.simulateLine(l, c)
 
-	// 10km × 1000円/km/月 = 10000
-	if cost != 10000 {
-		t.Errorf("cost = %d, want 10000", cost)
+	// 10km × 20000円/km/月 = 200000
+	if cost != 200000 {
+		t.Errorf("cost = %d, want 200000", cost)
 	}
 }
 
@@ -73,8 +73,8 @@ func TestSimulateLine_Double_IncreaseCost(t *testing.T) {
 		t.Errorf("複線維持費 %d が単線 %d 以下", doubleCost, singleCost)
 	}
 	// ×1.5
-	if doubleCost != 15000 {
-		t.Errorf("複線維持費 = %d, want 15000", doubleCost)
+	if doubleCost != 300000 {
+		t.Errorf("複線維持費 = %d, want 300000", doubleCost)
 	}
 }
 
@@ -94,8 +94,8 @@ func TestSimulateLine_Electrified_IncreaseCost(t *testing.T) {
 		t.Errorf("電化維持費 %d が非電化 %d 以下", elecCost, plainCost)
 	}
 	// ×1.3
-	if elecCost != 13000 {
-		t.Errorf("電化維持費 = %d, want 13000", elecCost)
+	if elecCost != 260000 {
+		t.Errorf("電化維持費 = %d, want 260000", elecCost)
 	}
 }
 
@@ -447,6 +447,20 @@ func TestSimulateEconomy_Deterministic(t *testing.T) {
 // TestEconomy_Scenario_Profitable は儲かる路線のシナリオを検証する。
 //
 // 阪急（資金 100 万円）が梅田〜宝塚を敷設し、12 ターンで資金が増える。
+// Phase 1-7.5 のバランス目標:
+//   - 営業係数 70〜90（史実の私鉄に近づける）
+//   - 12 ターン後の資金増加率 > 1.1（6.6 倍から大幅に圧縮）
+//
+// 注意（数値設計上の制約）:
+//
+//	営業係数 r と 12 ターン資金増加率 G は
+//	  G = 1 + (12ヶ月の営業利益)/開始資金 = 1 + (12ヶ月収入)(1-r)/開始資金
+//	の関係にあり、両者は独立に選べない。本シナリオ（12ヶ月収入 = 5,346,000、
+//	開始資金 = 904,606）では
+//	  r = 70-90% → G = 1.59-2.65
+//	  G = 1.1-1.5 → r = 91.5-98.3%
+//	となり、「営業係数 70-90」と「資金増加率 1.1-1.5」は同時に満たせない。
+//	史実の営業係数を優先し、資金増加率は 1.1 超（黒字成長）を検証する。
 func TestEconomy_Scenario_Profitable(t *testing.T) {
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: 1910, Month: 1}
@@ -473,19 +487,40 @@ func TestEconomy_Scenario_Profitable(t *testing.T) {
 
 	startCash := hankyu.Cash
 	line := hankyu.Lines[0]
-	t.Logf("敷設後資金: %d, 距離: %.1fkm, 運賃: %d円",
-		startCash, line.LengthKm, line.Fare)
+	t.Logf("[梅田〜宝塚] 距離 %.1fkm, 運賃 %d円, 敷設コスト %d円, 敷設後資金 %d円",
+		line.LengthKm, line.Fare, g.LineCost("umeda", "takarazuka", 1067, false), startCash)
 
-	// 12 ターン進める
+	// 12 ターン進める（各月の数値を記録）
 	for i := 0; i < 12; i++ {
+		pax := g.linePassengers(line)
+		revenue, maint := g.simulateLine(line, hankyu)
+		ratio := 0.0
+		if revenue > 0 {
+			ratio = float64(maint) / float64(revenue) * 100.0
+		}
+		t.Logf("  %s: 旅客 %d人/月, 収入 %d円, 維持費 %d円, 利益 %d円, 営業係数 %.1f",
+			g.Date.String(), pax, revenue, maint, revenue-maint, ratio)
 		g.EndTurn()
 	}
 
-	t.Logf("12ターン後資金: %d (変化: %d)", hankyu.Cash, hankyu.Cash-startCash)
-	t.Logf("路線利益: %d, 営業係数: %.1f", line.Profit, line.OperatingRatio)
+	growth := float64(hankyu.Cash) / float64(startCash)
+	dep := g.calculateDepreciation(hankyu)
+	t.Logf("[梅田〜宝塚] 12ターン後資金 %d円（%.3f倍, 変化 %d円）",
+		hankyu.Cash, growth, hankyu.Cash-startCash)
+	t.Logf("[梅田〜宝塚] 最終月: 利益 %d円, 営業係数 %.1f, 減価償却 %d円/月, 会社月次利益 %d円",
+		line.Profit, line.OperatingRatio, dep, hankyu.MonthlyProfit(g))
 
-	if hankyu.Cash <= startCash {
-		t.Errorf("資金が増えていない: start=%d, now=%d", startCash, hankyu.Cash)
+	// 営業係数 70-90（史実の私鉄）
+	if line.OperatingRatio < 70 || line.OperatingRatio > 90 {
+		t.Errorf("営業係数 = %.1f, want 70-90", line.OperatingRatio)
+	}
+	// 資金増加率 > 1.1（黒字成長）
+	if growth <= 1.1 {
+		t.Errorf("資金増加率 = %.3f, want > 1.1", growth)
+	}
+	// 6.6 倍の過大な黒字から改善していること
+	if growth >= 2.0 {
+		t.Errorf("資金増加率 = %.3f, want < 2.0（黒字が過大）", growth)
 	}
 	if line.Profit <= 0 {
 		t.Errorf("路線利益 = %d, want > 0", line.Profit)
@@ -494,18 +529,19 @@ func TestEconomy_Scenario_Profitable(t *testing.T) {
 
 // TestEconomy_Scenario_Deficit は赤字路線のシナリオを検証する。
 //
-// 資金 100 万円で田舎路線を敷設し、6 ターンで line_deficit、
-// 24 ターンで line_critical が生成される。
+// 資金 100 万円で赤字路線（36.7km、運賃 340 円）を敷設し、
+// 6 ターンで line_deficit、24 ターンで line_critical が生成される。
+// Phase 1-7.5 のバランス目標: 営業係数 150〜200（= コストが収入の 1.5〜2 倍）。
 func TestEconomy_Scenario_Deficit(t *testing.T) {
 	g := NewGame(1907, "rural")
 	g.Date = Date{Year: 1910, Month: 1}
 
 	g.AddCity(&City{
-		ID: "ruralA", Name: "山村", Population: 3000,
+		ID: "ruralA", Name: "地方都市", Population: 50000,
 		Lat: 35.0000, Lon: 136.0000,
 	})
 	g.AddCity(&City{
-		ID: "ruralB", Name: "田舎", Population: 1000,
+		ID: "ruralB", Name: "近郊町", Population: 30000,
 		Lat: 35.3000, Lon: 136.0000,
 	})
 
@@ -518,18 +554,30 @@ func TestEconomy_Scenario_Deficit(t *testing.T) {
 		t.Fatal(err)
 	}
 	line := co.Lines[0]
-	t.Logf("田舎路線: 距離 %.1fkm, 運賃 %d円, 敷設後資金 %d",
-		line.LengthKm, line.Fare, co.Cash)
+	t.Logf("[田舎路線] 距離 %.1fkm, 運賃 %d円, 敷設コスト %d円, 敷設後資金 %d円",
+		line.LengthKm, line.Fare, g.LineCost("ruralA", "ruralB", 1067, false), co.Cash)
 
-	// 6 ターン
+	// 6 ターン（各月の数値を記録）
 	for i := 0; i < 6; i++ {
+		pax := g.linePassengers(line)
+		revenue, maint := g.simulateLine(line, co)
+		ratio := 0.0
+		if revenue > 0 {
+			ratio = float64(maint) / float64(revenue) * 100.0
+		}
+		t.Logf("  %s: 旅客 %d人/月, 収入 %d円, 維持費 %d円, 営業係数 %.1f",
+			g.Date.String(), pax, revenue, maint, ratio)
 		g.EndTurn()
 	}
 	if !hasEventType(g.Events, EventLineDeficit) {
 		t.Errorf("6 ターンで line_deficit が生成されなかった")
 	}
-	t.Logf("6ターン後: 利益 %d, 営業係数 %.1f, 累積損失 %d",
+	t.Logf("[田舎路線] 6ターン後: 利益 %d円, 営業係数 %.1f, 累積損失 %d円",
 		line.Profit, line.OperatingRatio, line.AccumulatedLoss)
+
+	if line.OperatingRatio < 150 || line.OperatingRatio > 200 {
+		t.Errorf("赤字路線の営業係数 = %.1f, want 150-200", line.OperatingRatio)
+	}
 
 	// さらに 18 ターン（合計 24）
 	for i := 0; i < 18; i++ {
@@ -538,7 +586,7 @@ func TestEconomy_Scenario_Deficit(t *testing.T) {
 	if !hasEventType(g.Events, EventLineCritical) {
 		t.Errorf("24 ターンで line_critical が生成されなかった")
 	}
-	t.Logf("24ターン後: 連続赤字 %d, 累積損失 %d, 資金 %d",
+	t.Logf("[田舎路線] 24ターン後: 連続赤字 %d, 累積損失 %d円, 資金 %d円",
 		line.ConsecutiveDeficitTurns, line.AccumulatedLoss, co.Cash)
 
 	if line.ConsecutiveDeficitTurns != 24 {

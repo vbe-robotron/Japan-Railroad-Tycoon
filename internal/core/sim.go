@@ -179,11 +179,25 @@ func (g *Game) DefaultFare(fromID, toID string) int {
 	return int(math.Round(fare/10.0) * 10)
 }
 
+// DevelopedDemandFactor は開発度 1.0 あたりの需要倍率の増分。
+//
+// Phase 1-7.8 で 1.0 → 4.0 に強化した。史実の阪急（小林一三モデル）は
+// 沿線開発によって需要を 5 倍以上に伸ばした。係数 4.0 により開発度
+// 0.0〜1.0 の範囲で需要は 1.0〜5.0 倍となる。
+//
+//	Developed=0.0 → 需要 1.0 倍
+//	Developed=0.5 → 需要 3.0 倍
+//	Developed=1.0 → 需要 5.0 倍
+//
+// 「開発がゲームの核心」となることを狙う。
+const DevelopedDemandFactor = 4.0
+
 // Demand は都市の旅客需要を返す。
 //
 // Phase 1-7.7 で人口に線形比例するモデルからべき乗則へ変更した。
+// Phase 1-7.8 では開発度の効果を 1.0〜5.0 倍に強化した（阪急モデル）。
 //
-//	Demand = (Population / DemandBase)^0.6 × (1 + Developed) × SeasonalFactor
+//	Demand = (Population / DemandBase)^0.6 × (1 + Developed×4.0) × SeasonalFactor
 //
 // 指数 0.6 は交通工学の経験則（鉄道需要は人口の 0.5〜0.7 乗）に基づく。
 // これにより大都市（例: 神戸 40 万）の需要が人口に線形比例して
@@ -195,7 +209,8 @@ func (g *Game) Demand(city *City) int {
 	// べき乗則（基準人口で正規化）
 	base := math.Pow(float64(city.Population), DemandExponent) /
 		math.Pow(DemandBase, DemandExponent)
-	developed := 1.0 + city.Developed
+	// 開発度による需要倍率（Developed=0.0→1.0 倍、1.0→5.0 倍）
+	developed := 1.0 + city.Developed*DevelopedDemandFactor
 	seasonal := g.SeasonalFactor()
 	return int(base * developed * seasonal)
 }

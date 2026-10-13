@@ -450,19 +450,19 @@ func TestSimulateEconomy_Deterministic(t *testing.T) {
 // 阪急（資金 900 万円）が梅田〜宝塚（19.1km、運賃 200 円）を敷設し、
 // 12 ターンで黒字を維持する。
 //
-// Phase 1-7.7（需要のべき乗則化）後のバランス目標:
+// Phase 1-7.8（目標再定義）後のバランス目標（開発なしシナリオ）:
 //   - 営業係数 70〜90（史実の私鉄、維持）
 //   - 建設費 / 初期資金 30〜60%
+//   - 投資回収 15〜25 年（戦前私鉄 10〜20 年に沿った新目標）
+//   - 資金増加率（建設後資金比）1.02〜1.10
 //   - 路線利益 > 0
 //
-// 需要を人口のべき乗則（指数 0.6）にしたことで旅客収入が約 1/6 に
-// なるため、維持費単価を 20000 → 2800 にスケールし、営業係数 70〜90 を
-// 維持した。ただし BaseCostPerKm（建設費）は据え置きのため、Phase 1-7.6
-// で定めた投資回収 3〜7 年・資金増加率の各目標は、本フェーズでは
-// 満たせなくなった（投資回収は約 22 年、資金増加率は約 1.01〜1.03）。
-// これは「需要のべき乗則化に伴う絶対収益の低下」と「建設費単価の据え置き」
-// の組み合わせによる既知のクロスフェーズ矛盾であり、建設費単価の再調整は
-// 次フェーズ以降の課題とする（本フェーズの完了条件は営業係数の維持）。
+// Phase 1-7.7 で需要を人口のべき乗則（指数 0.6）にしたことで旅客収入が
+// 約 1/6 になり、Phase 1-7.6 の目標（投資回収 3〜7 年、資金増加率
+// 1.05〜1.20）は満たせなくなった（投資回収 約 22 年、資金増加率 約 1.01）。
+// これは史実の戦前私鉄（投資回収 10〜20 年）に照らすとむしろ現実的で
+// あるため、Phase 1-7.8 で目標を再定義した。開発なしの本シナリオは
+// 新目標（投資回収 15〜25 年、資金増加率 1.02〜1.10）を満たす。
 func TestEconomy_Scenario_Profitable(t *testing.T) {
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: 1910, Month: 1}
@@ -525,7 +525,7 @@ func TestEconomy_Scenario_Profitable(t *testing.T) {
 	t.Logf("[梅田〜宝塚] 投資回収期間 %.1f年, 最終月: 利益 %d円, 営業係数 %.1f, 会社月次利益 %d円",
 		paybackYears, line.Profit, line.OperatingRatio, hankyu.MonthlyProfit(g))
 
-	// 営業係数 70-90（史実の私鉄、Phase 1-7.7 でも維持）
+	// 営業係数 70-90（史実の私鉄、Phase 1-7.8 でも維持）
 	if line.OperatingRatio < 70 || line.OperatingRatio > 90 {
 		t.Errorf("営業係数 = %.1f, want 70-90", line.OperatingRatio)
 	}
@@ -534,17 +534,17 @@ func TestEconomy_Scenario_Profitable(t *testing.T) {
 	if ratio < 30 || ratio > 60 {
 		t.Errorf("建設費/初期資金 = %.1f%%, want 30-60%%", ratio)
 	}
-	// 投資回収期間は BaseCostPerKm 据え置きのため長期化（既知の矛盾）。
-	// 参考値として記録し、レンジのみ検証する。
-	if paybackYears < 15 || paybackYears > 30 {
-		t.Errorf("投資回収期間 = %.1f年, want 15-30（Phase 1-7.7 の暫定）", paybackYears)
+	// 投資回収期間 15-25 年（Phase 1-7.8 の新目標、戦前私鉄 10-20 年に沿う）
+	if paybackYears < 15 || paybackYears > 25 {
+		t.Errorf("投資回収期間 = %.1f年, want 15-25（Phase 1-7.8）", paybackYears)
 	}
-	// 資金増加率は需要減により縮小（既知の矛盾）。
+	// 資金増加率（建設後資金比）1.02-1.10（Phase 1-7.8 の新目標）。
+	// 初期比は建設費の支出を含むため下限近傍（約 1.01）にとどまる。
 	if growthInit < 1.00 || growthInit > 1.06 {
-		t.Errorf("資金増加率（初期比） = %.3f, want 1.00-1.06（Phase 1-7.7 の暫定）", growthInit)
+		t.Errorf("資金増加率（初期比） = %.3f, want 1.00-1.06", growthInit)
 	}
-	if growthPost < 1.00 || growthPost > 1.06 {
-		t.Errorf("資金増加率（建設後比） = %.3f, want 1.00-1.06（Phase 1-7.7 の暫定）", growthPost)
+	if growthPost < 1.02 || growthPost > 1.10 {
+		t.Errorf("資金増加率（建設後比） = %.3f, want 1.02-1.10（Phase 1-7.8）", growthPost)
 	}
 	if line.Profit <= 0 {
 		t.Errorf("路線利益 = %d, want > 0", line.Profit)
@@ -728,4 +728,244 @@ func TestEconomy_KobeOsaka(t *testing.T) {
 	if line.OperatingRatio < 90 || line.OperatingRatio > 120 {
 		t.Errorf("神戸〜梅田の営業係数 = %.1f, want 90-120", line.OperatingRatio)
 	}
+}
+
+// --- Phase 1-7.8: 目標再定義と開発強化（阪急モデル） ---
+
+// TestDemand_Developed は開発度の需要への影響を検証する。
+//
+// Phase 1-7.8 で開発度の係数を 1.0 → 4.0 に強化した（阪急モデル）。
+// 需要倍率は Developed=0.0 → 1.0 倍、0.5 → 3.0 倍、1.0 → 5.0 倍に
+// なり、史実の阪急（小林一三）が沿線開発で需要を 5 倍以上に伸ばした
+// ことを表現できる。
+//
+// 都市は宝塚（人口 3 万）、季節係数 0.90（1 月）。人口 3 万の基礎需要は
+// 30^0.6×0.90 ≈ 6.93 であり、Developed=0.0/0.5/1.0 の需要は
+// それぞれ約 6 / 20 / 34 となる。
+func TestDemand_Developed(t *testing.T) {
+	g := NewGame(1907, "hankyu")
+	g.Date = Date{Year: 1910, Month: 1}
+
+	city := &City{
+		ID: "takarazuka", Name: "宝塚",
+		Population: 30000,
+	}
+
+	// 開発度別の需要
+	tests := []struct {
+		developed float64
+		minDemand int
+		maxDemand int
+	}{
+		{0.0, 5, 8},
+		{0.5, 18, 24},
+		{1.0, 32, 38},
+	}
+	for _, tt := range tests {
+		city.Developed = tt.developed
+		d := g.Demand(city)
+		if d < tt.minDemand || d > tt.maxDemand {
+			t.Errorf("Developed=%.1f: Demand=%d, want %d〜%d",
+				tt.developed, d, tt.minDemand, tt.maxDemand)
+		}
+	}
+}
+
+// TestEconomy_DevelopedScenario は開発ありシナリオを検証する。
+//
+// 梅田〜宝塚（開発なし Developed=0.0）と開発あり（Developed=0.5）を
+// 比較し、開発ありの方が営業係数が 15 ポイント以上低い（= 儲かる）
+// ことを検証する。これは小林一三モデルの核心（沿線開発による需要増）。
+func TestEconomy_DevelopedScenario(t *testing.T) {
+	// 開発なし
+	g1 := setupEconomyScenario(t, 0.0)
+	line1 := g1.PlayerCompany().Lines[0]
+	ratio1 := line1.OperatingRatio
+
+	// 開発あり
+	g2 := setupEconomyScenario(t, 0.5)
+	line2 := g2.PlayerCompany().Lines[0]
+	ratio2 := line2.OperatingRatio
+
+	t.Logf("[開発なし] 営業係数 %.1f, [開発あり 0.5] 営業係数 %.1f（差 %.1f ポイント）",
+		ratio1, ratio2, ratio1-ratio2)
+
+	// 開発ありの方が営業係数が低い（= 儲かる）
+	if ratio2 >= ratio1-15 {
+		t.Errorf("開発の効果が不十分: 開発なし=%.1f, 開発あり=%.1f",
+			ratio1, ratio2)
+	}
+}
+
+// setupEconomyScenario は梅田〜宝塚の路線を敷設し、12 ヶ月進めたゲームを返す。
+//
+// developed は両都市の開発度。
+func setupEconomyScenario(t *testing.T, developed float64) *Game {
+	t.Helper()
+
+	g := NewGame(1907, "hankyu")
+	g.Date = Date{Year: 1910, Month: 1}
+
+	g.AddCity(&City{
+		ID: "umeda", Name: "梅田",
+		Population: 120000, Developed: developed,
+		Lat: 34.7055, Lon: 135.4983,
+	})
+	g.AddCity(&City{
+		ID: "takarazuka", Name: "宝塚",
+		Population: 30000, Developed: developed,
+		Lat: 34.7995, Lon: 135.3468,
+	})
+
+	hankyu := NewCompany("hankyu", "hankyu", "阪急")
+	hankyu.Cash = 9_000_000
+	g.AddCompany(hankyu)
+
+	a := &BuildLineAction{From: "umeda", To: "takarazuka", Gauge: 1067}
+	if _, err := a.Apply(g); err != nil {
+		t.Fatal(err)
+	}
+
+	// 12ヶ月進める
+	for i := 0; i < 12; i++ {
+		g.EndTurn()
+	}
+
+	return g
+}
+
+// phase178Run は months 回 EndTurn し、路線の月次営業利益の合計を返す。
+func phase178Run(g *Game, line *Line, months int) int64 {
+	var total int64
+	for i := 0; i < months; i++ {
+		g.EndTurn()
+		total += line.Profit
+	}
+	return total
+}
+
+// TestEconomy_Integrated_Phase178 は Phase 1-7.8 の統合シナリオを検証する。
+//
+// 4 つのシナリオについて、営業係数と投資回収を検証する:
+//
+//	梅田〜宝塚（開発なし）   : 営業係数 80〜90、投資回収 18〜25 年
+//	梅田〜宝塚（開発あり 0.5）: 営業係数 20〜35、投資回収 1〜5 年（劇的に改善）
+//	神戸〜梅田（競合あり）   : 営業係数 95〜120
+//	田舎路線               : 営業係数 150〜200、赤字（投資回収不能）
+//
+// 投資回収は「建設費 / 月次営業利益 / 12」で算出する。開発ありは
+// 阪急モデル（需要 3 倍）により営業係数・投資回収が大幅に改善する。
+func TestEconomy_Integrated_Phase178(t *testing.T) {
+	t.Run("梅田宝塚_開発なし", func(t *testing.T) {
+		g := setupEconomyScenario(t, 0.0)
+		line := g.PlayerCompany().Lines[0]
+		cost := int64(line.LengthKm * float64(BaseCostPerKm))
+
+		// すでに 12 ヶ月進んでいるが、平均利益のため改めて 12 ヶ月回す
+		total := phase178Run(g, line, 12)
+		avg := total / 12
+		payback := float64(cost) / float64(avg) / 12.0
+
+		t.Logf("[梅田〜宝塚/開発なし] 距離 %.1fkm, 営業係数 %.1f, 建設費 %d円, 平均利益 %d円/月, 投資回収 %.1f年",
+			line.LengthKm, line.OperatingRatio, cost, avg, payback)
+
+		if line.OperatingRatio < 80 || line.OperatingRatio > 90 {
+			t.Errorf("営業係数 = %.1f, want 80-90", line.OperatingRatio)
+		}
+		if payback < 18 || payback > 25 {
+			t.Errorf("投資回収 = %.1f年, want 18-25", payback)
+		}
+	})
+
+	t.Run("梅田宝塚_開発あり", func(t *testing.T) {
+		g := setupEconomyScenario(t, 0.5)
+		line := g.PlayerCompany().Lines[0]
+		cost := int64(line.LengthKm * float64(BaseCostPerKm))
+
+		total := phase178Run(g, line, 12)
+		avg := total / 12
+		payback := float64(cost) / float64(avg) / 12.0
+
+		t.Logf("[梅田〜宝塚/開発あり0.5] 距離 %.1fkm, 営業係数 %.1f, 建設費 %d円, 平均利益 %d円/月, 投資回収 %.1f年",
+			line.LengthKm, line.OperatingRatio, cost, avg, payback)
+
+		if line.OperatingRatio < 20 || line.OperatingRatio > 35 {
+			t.Errorf("営業係数 = %.1f, want 20-35", line.OperatingRatio)
+		}
+		if payback < 1 || payback > 5 {
+			t.Errorf("投資回収 = %.1f年, want 1-5", payback)
+		}
+	})
+
+	t.Run("神戸梅田_競合あり", func(t *testing.T) {
+		g := NewGame(1907, "hankyu")
+		g.Date = Date{Year: 1910, Month: 1}
+
+		g.AddCity(&City{ID: "umeda", Name: "梅田", Population: 120000})
+		g.AddCity(&City{ID: "kobe", Name: "神戸", Population: 400000})
+
+		hankyu := NewCompany("hankyu", "hankyu", "阪急")
+		hankyu.Cash = 20_000_000
+		g.AddCompany(hankyu)
+		hanshin := NewCompany("hanshin", "hanshin", "阪神")
+		hanshin.Cash = 20_000_000
+		g.AddCompany(hanshin)
+
+		line := NewLine("kobe-line", hankyu.ID, "kobe", "umeda")
+		line.LengthKm = 30.5
+		line.Fare = 290
+		line.TrainsPerDay = 10
+		hankyu.AddLine(line)
+
+		rival := NewLine("rival-line", hanshin.ID, "kobe", "umeda")
+		rival.LengthKm = 30.5
+		rival.Fare = 200
+		rival.TrainsPerDay = 10
+		hanshin.AddLine(rival)
+
+		phase178Run(g, line, 12)
+
+		t.Logf("[神戸〜梅田/競合あり] 距離 %.1fkm, シェア %.3f, 営業係数 %.1f",
+			line.LengthKm, g.lineShare(line), line.OperatingRatio)
+
+		if line.OperatingRatio < 95 || line.OperatingRatio > 120 {
+			t.Errorf("営業係数 = %.1f, want 95-120", line.OperatingRatio)
+		}
+	})
+
+	t.Run("田舎路線", func(t *testing.T) {
+		g := NewGame(1907, "rural")
+		g.Date = Date{Year: 1910, Month: 1}
+
+		g.AddCity(&City{ID: "ruralA", Name: "地方都市", Population: 30000,
+			Lat: 35.0000, Lon: 136.0000})
+		g.AddCity(&City{ID: "ruralB", Name: "近郊町", Population: 20000,
+			Lat: 35.3000, Lon: 136.0000})
+
+		co := NewCompany("rural", "rural", "田舎鉄道")
+		co.Cash = 10_000_000
+		g.AddCompany(co)
+
+		a := &BuildLineAction{From: "ruralA", To: "ruralB", Gauge: 1067}
+		if _, err := a.Apply(g); err != nil {
+			t.Fatal(err)
+		}
+		line := co.Lines[0]
+		cost := int64(line.LengthKm * float64(BaseCostPerKm))
+
+		total := phase178Run(g, line, 6)
+		avg := total / 6
+		payback := float64(cost) / float64(avg) / 12.0
+
+		t.Logf("[田舎路線] 距離 %.1fkm, 営業係数 %.1f, 平均利益 %d円/月, 投資回収 %.1f年（負なら赤字）",
+			line.LengthKm, line.OperatingRatio, avg, payback)
+
+		if line.OperatingRatio < 150 || line.OperatingRatio > 200 {
+			t.Errorf("営業係数 = %.1f, want 150-200", line.OperatingRatio)
+		}
+		// 赤字のため投資回収は不能（負値）
+		if payback >= 0 {
+			t.Errorf("田舎路線の投資回収 = %.1f年, want < 0（赤字）", payback)
+		}
+	})
 }

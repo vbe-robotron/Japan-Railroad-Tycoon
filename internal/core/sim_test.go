@@ -182,15 +182,17 @@ func TestDemand(t *testing.T) {
 	g := simGame()
 	g.Date = Date{Year: 1907, Month: 6} // 季節係数 1.00
 
-	// Phase 1-7.7: 需要はべき乗則 (Population/DemandBase)^0.6
+	// Phase 1-7.8: 需要はべき乗則 (Population/DemandBase)^0.6 に
+	// 開発度倍率 (1 + Developed×4.0) を掛けたもの（Developed=0 は 1.0 倍）。
 	base := &City{ID: "x", Population: 100000, Developed: 0.0}
 	if got := g.Demand(base); got != 15 {
 		t.Errorf("Demand(base) = %d, want 15", got)
 	}
 
+	// 開発度 0.5 → 需要倍率 3.0 倍。base=15.84（100^0.6）、15.84×3.0=47.5 → 47
 	dev := &City{ID: "x", Population: 100000, Developed: 0.5}
-	if got := g.Demand(dev); got != 23 {
-		t.Errorf("Demand(developed=0.5) = %d, want 23", got)
+	if got := g.Demand(dev); got != 47 {
+		t.Errorf("Demand(developed=0.5) = %d, want 47", got)
 	}
 
 	small := &City{ID: "x", Population: 50000, Developed: 0.0}

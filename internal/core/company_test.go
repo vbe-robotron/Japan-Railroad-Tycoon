@@ -87,10 +87,10 @@ func TestCompany_MonthlyProfit(t *testing.T) {
 		t.Errorf("MonthlyProfit = %d, want 1000", got)
 	}
 
-	// 減価償却を差し引く: 60km → 価値 300000 → 月次償却 500
+	// 減価償却を差し引く: 60km → 価値 15,000,000 → 月次償却 25,000
 	l.LengthKm = 60
-	if got := c.MonthlyProfit(g); got != 500 {
-		t.Errorf("MonthlyProfit（減価償却後） = %d, want 500", got)
+	if got := c.MonthlyProfit(g); got != -24000 {
+		t.Errorf("MonthlyProfit（減価償却後） = %d, want -24000", got)
 	}
 }
 
@@ -121,12 +121,12 @@ func TestCompany_NetAssetsWithLines(t *testing.T) {
 		t.Errorf("路線なし NetAssetsWithLines = %d, want 600", got)
 	}
 
-	// 路線価値: 10km × 5000 = 50000
+	// 路線価値: 10km × 250000 = 2,500,000
 	l := NewLine("l1", "c", "a", "b")
 	l.LengthKm = 10
 	c.AddLine(l)
-	if got := c.NetAssetsWithLines(g); got != 50600 {
-		t.Errorf("NetAssetsWithLines = %d, want 50600", got)
+	if got := c.NetAssetsWithLines(g); got != 2_500_600 {
+		t.Errorf("NetAssetsWithLines = %d, want 2500600", got)
 	}
 }
 

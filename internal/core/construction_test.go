@@ -12,8 +12,14 @@ import (
 func constructionGame(year int, cash int64) *Game {
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: year, Month: 6}
-	g.AddCity(NewCity("umeda", "梅田", "大阪"))
-	g.AddCity(NewCity("takarazuka", "宝塚", "兵庫"))
+	// Phase 1-7.6: 実座標を与えて梅田〜宝塚（約 19.1km）の現実的な
+	// 敷設コスト（BaseCostPerKm=250000 で約 477 万円）を検証できるようにする。
+	umeda := NewCity("umeda", "梅田", "大阪")
+	umeda.Lat, umeda.Lon = 34.7055, 135.4983
+	takarazuka := NewCity("takarazuka", "宝塚", "兵庫")
+	takarazuka.Lat, takarazuka.Lon = 34.7995, 135.3468
+	g.AddCity(umeda)
+	g.AddCity(takarazuka)
 	c := NewCompany("hankyu", "hankyu", "阪急")
 	c.Cash = cash
 	g.AddCompany(c)

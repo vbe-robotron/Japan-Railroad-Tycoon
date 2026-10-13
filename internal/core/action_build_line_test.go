@@ -400,17 +400,22 @@ func TestBuildLineAction_Deterministic(t *testing.T) {
 
 // TestBuildLine_Scenario は阪急が梅田〜宝塚を敷設する統合シナリオを検証する。
 //
-// Phase 1-6 の都市座標は ID ハッシュからの暫定擬似座標のため、実際の
-// 梅田〜宝塚（約 20km）より大きく、敷設コストは約 267 万円になる。
-// そのため資金は 1,000 万円とする。
+// Phase 1-7.6 では実座標（梅田・宝塚）を与え、19.1km の現実的な距離で
+// 敷設コスト（BaseCostPerKm=250000 で約 477 万円）を検証する。
+// 資金は建設費を賄い、なお余裕が残る 1,000 万円とする
+// （建設費 / 初期資金 ≒ 48%）。
 func TestBuildLine_Scenario(t *testing.T) {
 	const (
 		seed = int64(1907)
 		fund = int64(10_000_000)
 	)
 	g := NewGame(seed, "hankyu")
-	g.AddCity(NewCity("umeda", "梅田", "大阪"))
-	g.AddCity(NewCity("takarazuka", "宝塚", "兵庫"))
+	umeda := NewCity("umeda", "梅田", "大阪")
+	umeda.Lat, umeda.Lon = 34.7055, 135.4983
+	takarazuka := NewCity("takarazuka", "宝塚", "兵庫")
+	takarazuka.Lat, takarazuka.Lon = 34.7995, 135.3468
+	g.AddCity(umeda)
+	g.AddCity(takarazuka)
 
 	hankyu := NewCompany("hankyu", "hankyu", "阪急")
 	hankyu.Cash = fund

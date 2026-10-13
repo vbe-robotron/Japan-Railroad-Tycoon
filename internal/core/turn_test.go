@@ -181,8 +181,8 @@ func endTurnEcoGame(t *testing.T) (*Game, *Company, *Line) {
 	t.Helper()
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: 1910, Month: 6}
-	g.AddCity(&City{ID: "a", Name: "A", Population: 100000})
-	g.AddCity(&City{ID: "b", Name: "B", Population: 100000})
+	g.AddCity(&City{ID: "a", Name: "A", Population: 100000, Lat: 35.0, Lon: 135.0})
+	g.AddCity(&City{ID: "b", Name: "B", Population: 100000, Lat: 35.0, Lon: 135.2})
 
 	c := NewCompany("hankyu", "hankyu", "阪急")
 	c.Cash = 10_000_000

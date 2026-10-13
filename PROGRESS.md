@@ -3,12 +3,13 @@
 ## 完了
 - [x] Phase 0-1: プロジェクト初期化
 - [x] Phase 0-2: 共通型
+- [x] Phase 1-1: 基本構造体
 
 ## 進行中
-- [ ] Phase 1-1: 基本構造体
+- [ ] Phase 1-2: Event型
 
 ## 次
-- [ ] Phase 1-1: Game/Company/Line/City
+- [ ] Phase 1-2: Event型（60種以上のイベントタイプ）
 
 ## メモ
 - module: github.com/you/jrt

@@ -35,7 +35,23 @@ const BaseCostPerKm = 250000
 const MaintenancePerKm = 2800
 
 // FareElasticity は運賃弾力性（需要への影響）。
+//
+// 需要変化率 = 運賃変化率 × FareElasticity。
+// 例: 運賃 +10% → 需要 -7%、運賃 -20% → 需要 +14%。
+// Phase 1-8-1 では Game.lineScore の 100/Fare を通じて市場シェアに
+// 間接的に反映される。
 const FareElasticity = -0.7
+
+// 運賃の制約（Phase 1-8-1 の SetFareAction で使用）。
+const (
+	// MinFare は運賃の下限（円）。
+	MinFare = 1
+	// MaxFare は運賃の上限（円）。
+	MaxFare = 1000
+	// MaxFareChangeRatio は 1 回の運賃変更の最大変化率（±50%）。
+	// 急激な運賃変更を防ぐ。
+	MaxFareChangeRatio = 0.50
+)
 
 // DemandBase は旅客需要の基準人口（人）。
 //

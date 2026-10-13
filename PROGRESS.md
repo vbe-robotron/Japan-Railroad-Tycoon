@@ -14,12 +14,12 @@
 - [x] Phase 1-7.6: 資産回転率の根本修正（BaseCostPerKm 50倍、初期資金調整）
 - [x] Phase 1-7.7: 需要モデルのべき乗則化（指数 0.6、MaintenancePerKm 再スケール）
 - [x] Phase 1-7.8: 目標再定義と開発強化（Developed 効果 5 倍、阪急モデル）
+- [x] Phase 1-8-1: SetFareAction（運賃変更、TDD 適用）
 
 ## 進行中
-- [ ] Phase 1-8-1: SetFareAction
+- [ ] Phase 1-8-2: BuildFacilityAction
 
 ## 次
-- [ ] Phase 1-8-1: SetFareAction（運賃変更）
 - [ ] Phase 1-8-2: BuildFacilityAction（開発度を上げる）
 
 ## メモ
@@ -130,3 +130,27 @@
     `setupEconomyScenario`、`TestEconomy_Integrated_Phase178`（4 シナリオ）を
     追加。`TestDemand`（Developed=0.5）と `TestEconomy_Scenario_Profitable` の
     目標値を更新。
+- Phase 1-8-1 の SetFareAction（運賃変更、TDD 適用）:
+  - **TDD（Red → Green → Refactor）を本格適用**。先に `action_set_fare_test.go`
+    を作成し、スタブ実装のまま `go test` が失敗することを確認（Red、9 件以上
+    の FAIL と決定論テストの panic）。次に `action_set_fare.go` を本実装して
+    全 PASS（Green）。
+  - `action_stubs.go` から `SetFareAction` の Validate/Apply を削除
+    （スタブは 23 種 → **22 種**）。`action_stubs_test.go` の除外 switch に
+    `*SetFareAction` を追加。ヘッダーコメントと `doc.go` を更新。
+  - 実装:
+    - `SetFareAction.Validate`: nil ゲーム（GAME_NIL）、プレイヤーなし
+      （NO_PLAYER + ErrNoPlayer）、路線なし（LINE_NOT_FOUND + ErrNotFound）、
+      他社路線（NOT_OWNED + ErrUnauthorized）、運賃範囲外（INVALID_FARE）、
+      ±50% 超の変更（FARE_CHANGE_TOO_LARGE）を検証。Validate は状態を変更しない。
+    - `SetFareAction.Apply`: 運賃を変更し `fare_changed` イベント
+      （SeverityInfo、line_id / old_fare / new_fare / change_pct）を生成。
+      同じ運賃でも記録のためイベントを生成する。
+  - 制約: `MinFare=1`、`MaxFare=1000`、`MaxFareChangeRatio=0.50` を
+    `sim.go` に追加。
+  - 弾力性（`FareElasticity=-0.7`）は Phase 1-8-1 では `lineScore` の
+    `100/Fare` を通じて市場シェアに間接的に反映（需要そのものには直接作用
+    しない）。独占路線（シェア 1.0）では運賃 +25%（200→250円）で月次利益が
+    6,580円 → 29,080円に増加することを検証。
+  - テスト: `action_set_fare_test.go`（Type / Validate 7 種 / Apply 3 種 /
+    効果検証 / 決定論 / レジストリ経由）を追加。

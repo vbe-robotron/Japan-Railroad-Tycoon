@@ -1,9 +1,9 @@
 package core
 
-// このファイルは Phase 1-6 時点での一時スタブ。
-// 本実装済みのアクション（EndTurnAction, BuildLineAction）は
+// このファイルは Phase 1-8-1 時点での一時スタブ。
+// 本実装済みのアクション（EndTurnAction, BuildLineAction, SetFareAction）は
 // ここから削除済み。
-// Phase 1-7 以降、各アクションの本実装が完了したら、
+// Phase 1-8-2 以降、各アクションの本実装が完了したら、
 // 対応するメソッドをこのファイルから削除する。
 //
 // Validate は状態を変更せず実行可否を検証し、Apply は状態を変更して
@@ -46,12 +46,6 @@ func (a *PurchaseRollingStockAction) Validate(g *Game) error { return nil }
 
 // Apply は車両を購入する（スタブ）。
 func (a *PurchaseRollingStockAction) Apply(g *Game) ([]Event, error) { return nil, nil }
-
-// Validate は運賃変更の可否を検証する（スタブ）。
-func (a *SetFareAction) Validate(g *Game) error { return nil }
-
-// Apply は運賃を変更する（スタブ）。
-func (a *SetFareAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // Validate はダイヤ変更の可否を検証する（スタブ）。
 func (a *SetScheduleAction) Validate(g *Game) error { return nil }

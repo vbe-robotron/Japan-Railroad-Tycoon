@@ -24,6 +24,8 @@
 //   - DecodeAction で type 文字列から復元
 //   - Validate は状態を変更しない
 //   - Apply は []Event を返す
+//   - 本実装済み: EndTurnAction（ターン進行）、BuildLineAction（路線敷設）、
+//     SetFareAction（運賃変更）
 //
 // ターン進行:
 //   - Game.EndTurn(): 1ヶ月進める

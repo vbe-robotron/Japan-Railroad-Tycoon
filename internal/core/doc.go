@@ -18,6 +18,13 @@
 //   - 主要20種は Payload を構造体化
 //   - ビルダー: With, ForCompany, ForLine, ForCity
 //
+// アクション:
+//   - Action インターフェース（Type, Validate, Apply）
+//   - 25種のアクション（建設・運用・財務・M&A・開発・政治・廃線・ターン）
+//   - DecodeAction で type 文字列から復元
+//   - Validate は状態を変更しない
+//   - Apply は []Event を返す
+//
 // ID設計:
 //   - 静的データ（Node/City/Company/Event）: 意味的ID（"tokyo", "hankyu"）
 //   - 動的データ（Line/Facility/Game/EventLog）: NanoID（21文字）

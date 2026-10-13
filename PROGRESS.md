@@ -5,12 +5,13 @@
 - [x] Phase 0-2: 共通型
 - [x] Phase 1-1: 基本構造体
 - [x] Phase 1-2: Event型
+- [x] Phase 1-3: Action インターフェース
 
 ## 進行中
-- [ ] Phase 1-3: Action インターフェース
+- [ ] Phase 1-4: EndTurnAction
 
 ## 次
-- [ ] Phase 1-3: Action インターフェースとレジストリ
+- [ ] Phase 1-4: EndTurnAction（ターン進行の骨組み）
 
 ## メモ
 - module: github.com/you/jrt

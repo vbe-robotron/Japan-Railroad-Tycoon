@@ -38,4 +38,12 @@
 // 決定論:
 //   - seed + アクション列 → 同じ結果
 //   - 乱数は g.rng 経由のみ
+//
+// シミュレーション:
+//   - Game.DistanceKm: Haversine 距離 × 地形係数
+//   - Game.LineCost: 敷設コスト
+//   - Game.DefaultFare: デフォルト運賃
+//   - Game.Demand: 旅客需要
+//   - Game.FacilityCost: 施設建設コスト
+//   - Terrain: 地形パラメータ
 package core

@@ -7,12 +7,13 @@
 - [x] Phase 1-2: Event型
 - [x] Phase 1-3: Action インターフェース
 - [x] Phase 1-4: EndTurnAction
+- [x] Phase 1-5: Sim ヘルパー
 
 ## 進行中
-- [ ] Phase 1-5: Sim ヘルパー
+- [ ] Phase 1-6: BuildLineAction
 
 ## 次
-- [ ] Phase 1-5: Sim ヘルパー（LineCost, Distance, DefaultFare）
+- [ ] Phase 1-6: BuildLineAction（4ゲートと路線敷設）
 
 ## メモ
 - module: github.com/you/jrt

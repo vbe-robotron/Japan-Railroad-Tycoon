@@ -25,6 +25,12 @@
 //   - Validate は状態を変更しない
 //   - Apply は []Event を返す
 //
+// ターン進行:
+//   - Game.EndTurn(): 1ヶ月進める
+//   - EndTurnAction: プレイヤーの end-turn コマンド
+//   - turn_ended イベント: ターン終了時に生成
+//   - year_changed イベント: 年越し時に生成
+//
 // ID設計:
 //   - 静的データ（Node/City/Company/Event）: 意味的ID（"tokyo", "hankyu"）
 //   - 動的データ（Line/Facility/Game/EventLog）: NanoID（21文字）

@@ -1,8 +1,9 @@
 package core
 
-// このファイルは Phase 1-3 の一時スタブ。
-// Phase 1-4 以降、各アクションの本実装が完了したら、
-// 対応するメソッドを削除する。
+// このファイルは Phase 1-4 時点での一時スタブ。
+// 本実装済みのアクション（EndTurnAction）はここから削除済み。
+// Phase 1-5 以降、各アクションの本実装が完了したら、
+// 対応するメソッドをこのファイルから削除する。
 //
 // Validate は状態を変更せず実行可否を検証し、Apply は状態を変更して
 // 発生したイベントを返す。ここではすべて無条件に成功する空実装とする。
@@ -178,13 +179,3 @@ func (a *RestoreAbandonedLineAction) Validate(g *Game) error { return nil }
 
 // Apply は廃線を復活させる（スタブ）。
 func (a *RestoreAbandonedLineAction) Apply(g *Game) ([]Event, error) { return nil, nil }
-
-// ────────────────────────────────────────────
-// ターン系（1種）
-// ────────────────────────────────────────────
-
-// Validate はターン終了の可否を検証する（スタブ）。
-func (a *EndTurnAction) Validate(g *Game) error { return nil }
-
-// Apply はターンを終了する（スタブ）。
-func (a *EndTurnAction) Apply(g *Game) ([]Event, error) { return nil, nil }

@@ -6,12 +6,13 @@
 - [x] Phase 1-1: 基本構造体
 - [x] Phase 1-2: Event型
 - [x] Phase 1-3: Action インターフェース
+- [x] Phase 1-4: EndTurnAction
 
 ## 進行中
-- [ ] Phase 1-4: EndTurnAction
+- [ ] Phase 1-5: Sim ヘルパー
 
 ## 次
-- [ ] Phase 1-4: EndTurnAction（ターン進行の骨組み）
+- [ ] Phase 1-5: Sim ヘルパー（LineCost, Distance, DefaultFare）
 
 ## メモ
 - module: github.com/you/jrt

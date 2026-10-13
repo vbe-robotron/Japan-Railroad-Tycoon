@@ -1,0 +1,22 @@
+# Japan Railroad Tycoon - AI 開発ルール
+
+## コスト最適化（最優先）
+
+1. 出力は最小限に（差分のみ、比較表は3行以内）
+2. ドキュメント更新は PROGRESS.md のみ
+3. 思考は簡潔に（矛盾分析は1回で完結）
+4. テスト期待値調整は最小限
+
+## プロジェクト規約
+
+- Go 1.22+、net/http、SQLite
+- core 純粋性（net/http, database/sql, time, os 禁止）
+- 決定論テスト必須
+- カバレッジ 90% 以上
+- Conventional Commits
+
+## コミットメッセージ例
+
+feat(core): BuildLineAction を本実装
+balance(core): 開発効果のバランス調整
+fix(core): 需要計算のバグ修正

@@ -20,12 +20,13 @@
 - [x] Phase 1-8-3: AbandonLineAction（廃線4ゲート、用地売却益・評判低下）
 - [x] Phase 1-8-4: BuySharesAction（株取得・子会社化）
 - [x] Phase 1-8-5: TenderOffer/MergeAction
+- [x] Phase 2: SQL永続化
 
 ## 進行中
-- [ ] Phase 2: SQL永続化
+- [ ] Phase 3: Hub/Session
 
 ## 次
-- [ ] Phase 2: SQL永続化
+- [ ] Phase 3: Hub/Session
 
 ## Phase 1-8-2.5 の目標
 
@@ -272,3 +273,19 @@
     決定論 / レジストリ経由）を追加。
   - カバレッジ: `action_buy_shares.go` の Validate 94.4% / Apply 94.4%、
     buySharesCost 100%、全体 99.0%。core の import は従来どおり純粋。
+- Phase 2 の SQL 永続化:
+  - `internal/store` に `Store` インターフェースと `SQLiteStore` を実装。
+    `database/sql` + `modernc.org/sqlite`（cgo 不要）。core は SQL に依存しない。
+  - `migrations/001_init.sql` を `go:embed` で埋め込み。games / companies /
+    cities / lines / facilities / events / actions_log の 7 テーブル。
+    map・slice は JSON 列（holding / tags / payload）で保存。
+    lines / facilities は companies に `ON DELETE CASCADE`。
+  - `SaveGame` はトランザクション内で games を upsert し、子テーブルを
+    子→親の順で DELETE → INSERT。`LoadGame` は IDGenerator.Counter を復元し、
+    `EnsureRng` で乱数源を再構築する（決定論維持）。
+  - `AppendEvents` / `AppendAction` は seq を採番して追記。
+  - 接続は `MaxOpenConns(1)`、`_pragma=foreign_keys(1)`、
+    `journal_mode(WAL)`。`:memory:` でテスト可能。
+  - テスト: RoundTrip（全フィールド）・CorruptJSON・ScanError・FK エラー・
+    空 events・closed DB など 24 件。カバレッジ 91.3%。
+  - core は無変更。

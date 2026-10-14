@@ -18,12 +18,13 @@
 - [x] Phase 1-8-2: BuildFacilityAction（施設建設・開発度上昇・不動産収入）
 - [x] Phase 1-8-2.5: 開発効果のバランス調整
 - [x] Phase 1-8-3: AbandonLineAction（廃線4ゲート、用地売却益・評判低下）
+- [x] Phase 1-8-4: BuySharesAction（株取得・子会社化）
 
 ## 進行中
-- [ ] Phase 1-8-4: BuySharesAction
+- [ ] Phase 1-8-5: TenderOffer/MergeAction
 
 ## 次
-- [ ] Phase 1-8-4: BuySharesAction（M&A 入門）
+- [ ] Phase 1-8-5: TenderOffer/MergeAction（TOB・合併）
 
 ## Phase 1-8-2.5 の目標
 
@@ -247,3 +248,26 @@
   - `action_stubs.go` から AbandonLineAction を削除（残りスタブ 20 種）。
   - `cmd/play` に `abandon-line <id> [--reason R]` を追加。
   - カバレッジ: `action_abandon_line.go` の Validate 95.5% / Apply 93.3%、全体 99.2%。
+- Phase 1-8-4 の株取得:
+  - `action_buy_shares.go` に本実装。TDD（Red → Green）を適用。
+    先に `action_buy_shares_test.go` を作成し、スタブのまま失敗を確認
+    （Red）。次に本実装して全 PASS（Green）。
+  - `Validate`: nil ゲーム（GAME_NIL）、プレイヤーなし（NO_PLAYER +
+    ErrNoPlayer）、株数 ≤ 0（INVALID_COUNT）、自社株（SELF_PURCHASE）、
+    対象なし（TARGET_NOT_FOUND + ErrNotFound）、国鉄（TARGET_NATIONAL +
+    ErrUnauthorized）、資金不足（INSUFFICIENT_FUNDS + ErrInsufficientFunds）
+    を検証。Validate は状態を変更しない。
+  - `Apply`: 取得コスト（株数 × 株価 × 1.05）を資金から差し引き、
+    `Holding[targetID]` に加算。`shares_acquired` イベントを生成。
+    議決権比率（Holding / TotalShares）が 50% 超なら `ParentID` を自社に
+    設定し `subsidiary_established` イベントを追加生成。
+  - `BuySharesPremium = 1.05`（5% プレミアム）を定数化する。
+  - `action_stubs.go` から BuySharesAction を削除（残りスタブ 19 種）。
+    `action_stubs_test.go` の除外 switch に `*BuySharesAction` を追加。
+  - `cmd/play` に `buy-shares <company_id> <count>` を追加。
+  - 子会社化の実測値（TotalShares=10000、StockPrice=1000、50%超の 5001 株）:
+    取得コスト 5,251,050 円、保有比率 50.01% で ParentID が自社に設定。
+  - テスト: `action_buy_shares_test.go`（Type / Validate 7 種 / Apply 3 種 /
+    決定論 / レジストリ経由）を追加。
+  - カバレッジ: `action_buy_shares.go` の Validate 94.4% / Apply 94.4%、
+    buySharesCost 100%、全体 99.0%。core の import は従来どおり純粋。

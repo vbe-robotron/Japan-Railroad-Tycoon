@@ -1,8 +1,8 @@
 package core
 
-// このファイルは Phase 1-8-3 時点での一時スタブ。
+// このファイルは Phase 1-8-4 時点での一時スタブ（残りスタブ 19 種）。
 // 本実装済み: EndTurnAction, BuildLineAction, SetFareAction,
-//             BuildFacilityAction, AbandonLineAction
+//             BuildFacilityAction, AbandonLineAction, BuySharesAction
 // 本実装済みのアクションはここから削除済み。
 // 以降、各アクションの本実装が完了したら、
 // 対応するメソッドをこのファイルから削除する。
@@ -79,12 +79,6 @@ func (a *RepayDebtAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 // ────────────────────────────────────────────
 // M&A系（5種）
 // ────────────────────────────────────────────
-
-// Validate は他社株取得の可否を検証する（スタブ）。
-func (a *BuySharesAction) Validate(g *Game) error { return nil }
-
-// Apply は他社株を取得する（スタブ）。
-func (a *BuySharesAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // Validate は TOB の可否を検証する（スタブ）。
 func (a *TenderOfferAction) Validate(g *Game) error { return nil }

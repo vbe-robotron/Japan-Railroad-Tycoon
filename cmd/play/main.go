@@ -97,6 +97,7 @@ func printBanner(g *core.Game) {
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
+    fmt.Println("  buy-shares <company_id> <count>  他社株取得（5%プレミアム・50%超で子会社化）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")
@@ -159,6 +160,17 @@ func handleCommand(g *core.Game, line string) bool {
             return true
         }
         cmdAbandonLine(g, parts)
+    case "buy-shares", "buy":
+        if len(parts) < 3 {
+            fmt.Println("使い方: buy-shares <company_id> <count>")
+            return true
+        }
+        count, err := strconv.Atoi(parts[2])
+        if err != nil {
+            fmt.Println("株数は整数で指定してください")
+            return true
+        }
+        cmdBuyShares(g, parts[1], count)
     case "et":
         cmdEndTurn(g, 1)
     case "turn":
@@ -345,6 +357,17 @@ func cmdBuildFacility(g *core.Game, parts []string) {
     printEvents(events)
 }
 
+// cmdBuyShares は株取得アクションを適用する。
+func cmdBuyShares(g *core.Game, targetID string, count int) {
+    a := &core.BuySharesAction{TargetCompanyID: targetID, Count: count}
+    events, err := a.Apply(g)
+    if err != nil {
+        fmt.Printf("✗ %v\n", err)
+        return
+    }
+    printEvents(events)
+}
+
 // cmdAbandonLine は廃線アクションを適用する。
 //
 // line_id は完全な ID か、lines 表示の短縮 ID（先頭 8 文字）を受け付ける。
@@ -394,6 +417,7 @@ func cmdHelp() {
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
+    fmt.Println("  buy-shares <company_id> <count>  他社株取得（5%プレミアム・50%超で子会社化）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")

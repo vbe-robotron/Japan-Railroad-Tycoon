@@ -1,6 +1,11 @@
-// Package api は HTTP ハンドラと API クライアントを提供する。
+// Package api は HTTP サーバーとクライアントを提供する。
 //
-// net/http の標準ライブラリのみを用いてエンドポイントを公開し、
-// hub を介してゲームを操作する。CLI などのクライアント側で
-// 利用する api.Client もここに実装する。
+// サーバー:
+//   - NewRouter(h, st): HTTP ハンドラ
+//   - Response 型: 統一レスポンス形式
+//
+// クライアント:
+//   - NewClient(cfg): HTTP クライアント
+//   - Client.ForGame(id): ゲーム単位のクライアント
+//   - 全アクション・状態取得をメソッド化
 package api

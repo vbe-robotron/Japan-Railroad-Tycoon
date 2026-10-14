@@ -23,12 +23,13 @@
 - [x] Phase 2: SQL永続化
 - [x] Phase 3: Hub/Session
 - [x] Phase 4: HTTP API
+- [x] Phase 5: api.Client
 
 ## 進行中
-- [ ] Phase 5: api.Client
+- [ ] Phase 6: CLI REPL
 
 ## 次
-- [ ] Phase 5: api.Client
+- [ ] Phase 6: CLI REPL
 
 ## Phase 1-8-2.5 の目標
 
@@ -327,3 +328,19 @@
     `-race` 全通過。core / store / hub は無変更。
   - 注意: テストの `TestCreateGame` は 201 Created を期待する（仕様の
     `writeOK`=200 ではなく REST 慣例を採用）。
+- Phase 5 の API クライアント:
+  - `internal/api` に `client.go` / `error.go` / `request.go` / `session.go` /
+    `types.go` / `state.go` / `build.go` / `operate.go` / `finance.go` /
+    `ma.go` / `abandon.go` / `turn.go` / `stream.go` を追加。
+  - `NewClient(Config)` と `Client.ForGame(id)` で `GameClient` を生成。全
+    メソッドが `ctx` を受け取り、統一レスポンスをデコードする。
+  - 接続失敗・タイムアウト・不正応答は `ErrConnection` / `ErrTimeout` /
+    `ErrInvalid` を返す。サーバーの `{code,message,hint}` は `*api.Error`
+    （Status は JSON 非対象）として返す。`IsNotFound` / `IsValidation` を提供。
+  - `ListGames` はサーバーが ID 一覧を返すため、各ゲームの状態を取得して
+    `GameSummary` を組み立てる。
+  - `Stream` は `coder/websocket` で接続し、受信ゴルーチンから
+    `chan StreamMessage`（snapshot / events）を非ブロッキングに返す。
+  - テスト: client / state / action / error / stream の計 35 件、
+    `httptest` 使用。カバレッジ 92.0%、`-race` 全通過。
+    core / store / hub は無変更。

@@ -52,8 +52,8 @@ type CompanyDef struct {
 
 // HistoricalLineDef は史実路線定義（historical_lines.json の 1 要素）。
 //
-// 参照用データであり、Game へは投入しない。Phase 8 の AI や
-// プレイヤーの参考情報として利用する。
+// ApplyToGame で core.HistoricalLine に変換して Game へ注入する。
+// Phase 8 の AI（史実ルート追従）やプレイヤーの参考情報として利用する。
 type HistoricalLineDef struct {
 	CompanyID   string `json:"company_id"`
 	From        string `json:"from"`

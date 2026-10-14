@@ -232,6 +232,52 @@ func TestEndTurn_CashChange(t *testing.T) {
 	}
 }
 
+func TestEndTurn_WithAI(t *testing.T) {
+	g, c := newAITestGame(t, "hankyu", 100_000_000, &HistoricalLine{
+		CompanyID: "hankyu", From: "a", To: "b", Gauge: 1067,
+		OpenedYear: 1910, OpenedMonth: 3, DisplayName: "テスト線",
+	})
+	g.InitAIs()
+
+	events := g.EndTurn()
+
+	if len(c.Lines) != 1 {
+		t.Fatalf("AI が路線を敷設していない: Lines = %d, want 1", len(c.Lines))
+	}
+	if !hasEventType(events, EventLineOpened) {
+		t.Error("line_opened イベントが生成されなかった")
+	}
+	// turn_ended は AI 行動の後にも必ず生成される
+	if !hasEventType(events, EventTurnEnded) {
+		t.Error("turn_ended イベントが生成されなかった")
+	}
+}
+
+func TestEndTurn_WithAI_Deterministic(t *testing.T) {
+	setup := func() *Game {
+		g, _ := newAITestGame(t, "hankyu", 100_000_000, &HistoricalLine{
+			CompanyID: "hankyu", From: "a", To: "b", Gauge: 1067,
+			OpenedYear: 1910, OpenedMonth: 3, DisplayName: "テスト線",
+		})
+		g.InitAIs()
+		return g
+	}
+	a := setup()
+	b := setup()
+	for i := 0; i < 3; i++ {
+		ea := a.EndTurn()
+		eb := b.EndTurn()
+		if len(ea) != len(eb) {
+			t.Fatalf("iteration %d: events 数が不一致", i)
+		}
+		for j := range ea {
+			if ea[j].ID != eb[j].ID || ea[j].Message != eb[j].Message {
+				t.Errorf("iteration %d event %d: 不一致", i, j)
+			}
+		}
+	}
+}
+
 func TestEndTurn_NoLines(t *testing.T) {
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: 1910, Month: 6}

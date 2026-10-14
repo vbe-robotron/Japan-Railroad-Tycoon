@@ -17,7 +17,13 @@ type Game struct {
 	Companies map[string]*Company `json:"companies"`
 	Cities    map[string]*City    `json:"cities"`
 	Events    []Event             `json:"events"`
-	rng       *rand.Rand          `json:"-"`
+
+	// AIs は会社IDごとの AI。プレイヤー会社も含む（HistoryIgnore）。
+	AIs map[string]*AI `json:"ais"`
+	// HistoricalLines は史実路線（data パッケージから注入）。
+	HistoricalLines []HistoricalLine `json:"historical_lines"`
+
+	rng *rand.Rand `json:"-"`
 }
 
 // NewGame は新しいゲームを生成する。
@@ -35,7 +41,11 @@ func NewGame(seed int64, playerID string) *Game {
 		Companies: map[string]*Company{},
 		Cities:    map[string]*City{},
 		Events:    []Event{},
-		rng:       rand.New(rand.NewSource(seed)),
+
+		AIs:             map[string]*AI{},
+		HistoricalLines: []HistoricalLine{},
+
+		rng: rand.New(rand.NewSource(seed)),
 	}
 }
 

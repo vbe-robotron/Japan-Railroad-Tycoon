@@ -130,6 +130,8 @@ func createGame(h *hub.Hub, st store.Store) http.HandlerFunc {
 		if sess.Game.Date.IsZero() {
 			sess.Game.Date = defaultStartDate
 		}
+		// 全社に AI を割り当てる（プレイヤー会社は HistoryIgnore）。
+		sess.Game.InitAIs()
 		_ = st.SaveGame(r.Context(), sess.Game)
 		resp := stateOf(sess.Game)
 		sess.Unlock()

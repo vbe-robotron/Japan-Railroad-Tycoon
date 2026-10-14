@@ -55,6 +55,14 @@
 //   - TechnologyTable: 技術テーブル
 //   - RegulationTable: 法規テーブル
 //
+// AI:
+//   - AI: 1社の意思決定
+//   - Personality: 性格付け
+//   - HistoryMode: 史実追従度
+//   - RunAI: 全社の AI 実行
+//   - aiFollowHistory: 史実ルート追従
+//   - HistoricalLine: 史実路線（data から注入）
+//
 // 経済シミュレーション:
 //   - Game.simulateEconomy(): 全社の月次経済
 //   - Game.simulateLine(): 路線ごとの収入・コスト

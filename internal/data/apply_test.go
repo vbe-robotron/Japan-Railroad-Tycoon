@@ -23,6 +23,11 @@ func sampleDataset() *Dataset {
 			FoundedYear: 1872, InitialCash: 50_000_000, TotalShares: 100000,
 			StockPrice: 0, Region: "kansai", Reputation: 50,
 		}},
+		HistoricalLines: []HistoricalLineDef{{
+			CompanyID: "hankyu", From: "umeda", To: "takarazuka",
+			Gauge: 1435, Double: false, OpenedYear: 1910, OpenedMonth: 3,
+			DisplayName: "宝塚線",
+		}},
 	}
 }
 
@@ -102,6 +107,25 @@ func TestApplyToGame_NilSafe(t *testing.T) {
 	}
 
 	sampleDataset().ApplyToGame(nil, "p")
+}
+
+func TestApplyToGame_HistoricalLines(t *testing.T) {
+	g := core.NewGame(1, "hankyu")
+	sampleDataset().ApplyToGame(g, "hankyu")
+
+	if len(g.HistoricalLines) != 1 {
+		t.Fatalf("len(HistoricalLines) = %d, want 1", len(g.HistoricalLines))
+	}
+	h := g.HistoricalLines[0]
+	if h.CompanyID != "hankyu" || h.From != "umeda" || h.To != "takarazuka" {
+		t.Errorf("HistoricalLine = %+v", h)
+	}
+	if h.Gauge != 1435 || h.OpenedYear != 1910 || h.OpenedMonth != 3 {
+		t.Errorf("HistoricalLine 詳細 = %+v", h)
+	}
+	if h.DisplayName != "宝塚線" {
+		t.Errorf("DisplayName = %q, want 宝塚線", h.DisplayName)
+	}
 }
 
 func TestApplyToGame_Vanilla(t *testing.T) {

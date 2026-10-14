@@ -1,24 +1,30 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/you/jrt/internal/api"
+	"github.com/you/jrt/internal/hub"
+	"github.com/you/jrt/internal/store"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	port := flag.String("port", "8080", "listen port")
+	dbPath := flag.String("db", "jrt.db", "SQLite database path")
+	flag.Parse()
+
+	st, err := store.NewSQLite(*dbPath)
+	if err != nil {
+		log.Fatal(err)
 	}
+	defer st.Close()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-	})
+	h := hub.New(st)
+	router := api.NewRouter(h, st)
 
-	log.Printf("JRT server listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	addr := ":" + *port
+	log.Printf("JRT server listening on %s (db: %s)", addr, *dbPath)
+	log.Fatal(http.ListenAndServe(addr, router))
 }

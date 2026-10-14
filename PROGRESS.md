@@ -22,12 +22,13 @@
 - [x] Phase 1-8-5: TenderOffer/MergeAction
 - [x] Phase 2: SQL永続化
 - [x] Phase 3: Hub/Session
+- [x] Phase 4: HTTP API
 
 ## 進行中
-- [ ] Phase 4: HTTP API
+- [ ] Phase 5: api.Client
 
 ## 次
-- [ ] Phase 4: HTTP API
+- [ ] Phase 5: api.Client
 
 ## Phase 1-8-2.5 の目標
 
@@ -301,3 +302,28 @@
     `Close` は `sync.Once` で 1 回だけ。`Broadcast` は購読者をスナップショット。
   - テスト: fakeStore によるエラー注入を含む 17 件。カバレッジ 98.9%、
     `-race` 全通過。core / store は無変更。
+- Phase 4 の HTTP API:
+  - `internal/api` に `response.go` / `middleware.go` / `handlers.go` /
+    `router.go` / `ws.go` を実装。Go 1.22 のメソッド付きパターン
+    （`mux.HandleFunc("METHOD /path")`）と `r.PathValue` を用いる。
+  - エンドポイント: `POST/GET /api/games`、`GET/DELETE /api/games/{id}`、
+    `POST /api/games/{id}/actions`、`POST /api/games/{id}/turn/end`、
+    `GET .../lines`, `.../lines/{lid}`, `.../companies`, `.../cities`,
+    `.../events`, `.../can-build`, `.../stream`（WebSocket）、`GET /health`。
+  - レスポンスは `{ok, data, events, errors}` で統一。`writeValidationError`
+    は `*core.ValidationError` を 400（GAME_NIL/NO_PLAYER/その他）/
+    404（`*_NOT_FOUND`）/ 403（所有権・UNAUTHORIZED 系）へ変換する。
+  - アクションは `DecodeAction → Validate → Apply → SaveGame → AppendAction →
+    AppendEvents → Broadcast` の順で一貫処理。`SaveGame` はセッションの
+    ロック保持中に呼び整合性を担保する。
+  - `createGame` は `hub.Create` 後に空のプレイヤー会社（Cash 900 万円、
+    株 10000、株価 1000、IsPlayer）を追加し、開始日を 1907 年 10 月に設定する
+    （初期会社・都市の本格投入は Phase 8 予定）。
+  - WebSocket は接続直後にスナップショット、以降は Broadcast を非ブロッキング
+    転送。`conn.CloseRead` でクライアント切断を検知する。
+  - `cmd/server/main.go` を `-port` / `-db` フラグ付きに更新し、API ルータを
+    公開する。
+  - テスト: handlers / ws / router / response の計 19 件。カバレッジ 91.6%、
+    `-race` 全通過。core / store / hub は無変更。
+  - 注意: テストの `TestCreateGame` は 201 Created を期待する（仕様の
+    `writeOK`=200 ではなく REST 慣例を採用）。

@@ -25,12 +25,13 @@
 - [x] Phase 4: HTTP API
 - [x] Phase 5: api.Client
 - [x] Phase 6: CLI REPL
+- [x] Phase 7-1: データローダー + 関西データ
 
 ## 進行中
-- [ ] Phase 7: データファイル
+- [ ] Phase 7-2: 史実路線データ
 
 ## 次
-- [ ] Phase 7: データファイル
+- [ ] Phase 7-2: 史実路線データ
 
 ## Phase 1-8-2.5 の目標
 
@@ -369,3 +370,29 @@
     サーバーに対する `build` は `FROM_NOT_FOUND` を返す。`start → status →
     et → lines` は動作する。都市・会社データの投入は Phase 7/8 で行う。
   - core / store / hub / api は無変更。
+- Phase 7-1 のデータローダー + 関西データ:
+  - `internal/data` に `loader.go` / `apply.go` を追加。`encoding/json` と
+    `os.ReadFile` で `data/mods/vanilla/{cities,companies}.json` を読み込む
+    （embed はバイナリ配布時の後続課題）。
+  - スキーマ: `Dataset` / `CityDef` / `CompanyDef`。`Load` は読み込み後に
+    `Validate` を呼び、必須フィールド・ID 重複（種別ごと）・座標範囲
+    （緯度 ±90 / 経度 ±180）・値域を検証する。エラーは `ErrInvalidData` /
+    `ErrDuplicateID` で判定可能。
+  - 関西データ: 都市 10 件（梅田・宝塚・箕面・十三・庄内・神戸・京都・奈良・
+    難波・堺、実座標付き）、会社 7 社（阪急・阪神・京阪・南海・近鉄・山陽・
+    国鉄）。国鉄は `IsNational`。
+  - `ApplyToGame` は都市を `AddCity`、会社を `AddCompany` で投入し、
+    `playerID` 一致をプレイヤーに設定する（`d`/`g` が nil なら no-op）。
+  - `hub.Hub` に `data *data.Dataset` を追加し `New(st, ds)` に変更。
+    `Hub.Data()` で参照。`createGame`（`internal/api/handlers.go`）は
+    mod データが結線されていれば投入する。未結線（nil）の場合は従来どおり
+    空のプレイヤー会社を作るため、既存テストは無変更で通る。
+  - `cmd/server/main.go` に `-data` フラグ（既定 `data`）を追加し、起動時に
+    `data.Load` して Hub に渡す。`cmd/play` は無変更（スコープ外）。
+  - **既知の問題を解決**: 新規サーバーで `createGame → build umeda takarazuka`
+    が成功する（`FROM_NOT_FOUND` 解消）。curl 実測で cities=10 / companies=7 /
+    `line_opened` / lines=1。
+  - テスト: `loader_test.go`（Load / Validate 系 12 件）、`apply_test.go`
+    （投入 6 件）、`handlers_test.go` に `TestCreateGame_WithData` /
+    `TestBuildLine_AfterCreate` を追加。カバレッジ `internal/data` 98.6%、
+    `-race` 全通過。core は無変更。

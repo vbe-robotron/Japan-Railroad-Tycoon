@@ -115,6 +115,10 @@ func createGame(h *hub.Hub, st store.Store) http.HandlerFunc {
 		}
 
 		sess.Lock()
+		// mod データが結線されていれば都市・会社を投入する。
+		if ds := h.Data(); ds != nil {
+			ds.ApplyToGame(sess.Game, req.CompanyID)
+		}
 		if _, ok := sess.Game.Companies[req.CompanyID]; !ok {
 			c := core.NewCompany(req.CompanyID, req.CompanyID, req.CompanyID)
 			c.IsPlayer = true

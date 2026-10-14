@@ -86,7 +86,7 @@ func (f *fakeStore) Close() error { return nil }
 
 func newTestHub() (*Hub, *fakeStore) {
 	st := newFakeStore()
-	return New(st), st
+	return New(st, nil), st
 }
 
 // recvEvents は購読者からイベント列を 1 件受信する。

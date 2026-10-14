@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "companies": [
+    {
+      "id": "hankyu",
+      "group_id": "hankyu",
+      "name": "阪急電鉄",
+      "legal_name": "箕面有馬電気軌道株式会社",
+      "founded_year": 1907,
+      "initial_cash": 9000000,
+      "total_shares": 10000,
+      "stock_price": 1000,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "hanshin",
+      "group_id": "hanshin",
+      "name": "阪神電鉄",
+      "legal_name": "阪神電気鉄道株式会社",
+      "founded_year": 1907,
+      "initial_cash": 5000000,
+      "total_shares": 10000,
+      "stock_price": 800,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "keihan",
+      "group_id": "keihan",
+      "name": "京阪電鉄",
+      "legal_name": "京阪電気鉄道株式会社",
+      "founded_year": 1906,
+      "initial_cash": 4000000,
+      "total_shares": 10000,
+      "stock_price": 900,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "nankai",
+      "group_id": "nankai",
+      "name": "南海電鉄",
+      "legal_name": "南海鉄道株式会社",
+      "founded_year": 1885,
+      "initial_cash": 6000000,
+      "total_shares": 10000,
+      "stock_price": 850,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "kintetsu",
+      "group_id": "kintetsu",
+      "name": "近鉄",
+      "legal_name": "近畿日本鉄道株式会社",
+      "founded_year": 1910,
+      "initial_cash": 8000000,
+      "total_shares": 10000,
+      "stock_price": 1100,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "sanyo",
+      "group_id": "sanyo",
+      "name": "山陽電鉄",
+      "legal_name": "山陽電気鉄道株式会社",
+      "founded_year": 1907,
+      "initial_cash": 2000000,
+      "total_shares": 10000,
+      "stock_price": 500,
+      "region": "kansai",
+      "is_player_candidate": true,
+      "tags": ["kansai", "major"],
+      "reputation": 50
+    },
+    {
+      "id": "jnr",
+      "group_id": "jnr",
+      "name": "国鉄",
+      "legal_name": "日本国有鉄道",
+      "founded_year": 1872,
+      "initial_cash": 50000000,
+      "total_shares": 100000,
+      "stock_price": 0,
+      "region": "kansai",
+      "is_player_candidate": false,
+      "tags": ["kansai", "national"],
+      "reputation": 50
+    }
+  ]
+}

@@ -7,10 +7,12 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/you/jrt/internal/core"
+	"github.com/you/jrt/internal/data"
 	"github.com/you/jrt/internal/hub"
 	"github.com/you/jrt/internal/store"
 )
@@ -31,7 +33,7 @@ func newSQLiteStore(t *testing.T) *store.SQLiteStore {
 
 func newTestServer(t *testing.T, st store.Store) (*httptest.Server, *hub.Hub) {
 	t.Helper()
-	h := hub.New(st)
+	h := hub.New(st, nil)
 	srv := httptest.NewServer(NewRouter(h, st))
 	t.Cleanup(srv.Close)
 	return srv, h
@@ -456,7 +458,7 @@ func (f *failStore) SaveGame(_ context.Context, _ *core.Game) error {
 func TestErrorResponse_InternalServerError(t *testing.T) {
 	base := newSQLiteStore(t)
 	fs := &failStore{Store: base}
-	h := hub.New(fs)
+	h := hub.New(fs, nil)
 	srv := httptest.NewServer(NewRouter(h, fs))
 	defer srv.Close()
 
@@ -469,10 +471,87 @@ func TestErrorResponse_InternalServerError(t *testing.T) {
 	}
 }
 
+// newDataServer は vanilla データを結線したサーバーを用意する。
+func newDataServer(t *testing.T) (*httptest.Server, *hub.Hub) {
+	t.Helper()
+	st := newSQLiteStore(t)
+	ds, err := data.Load(filepath.Join("..", "..", "data"))
+	if err != nil {
+		t.Fatalf("data.Load: %v", err)
+	}
+	h := hub.New(st, ds)
+	srv := httptest.NewServer(NewRouter(h, st))
+	t.Cleanup(srv.Close)
+	return srv, h
+}
+
+// ────────────────────────────────────────────
+// データ結線
+// ────────────────────────────────────────────
+
+func TestCreateGame_WithData(t *testing.T) {
+	srv, _ := newDataServer(t)
+	id, _ := createTestGame(t, srv, `{"company_id":"hankyu","seed":42}`)
+
+	_, ce := doRequest(t, http.MethodGet, srv.URL+"/api/games/"+id+"/companies", "")
+	var companies []*core.Company
+	if err := json.Unmarshal(ce.Data, &companies); err != nil {
+		t.Fatalf("companies: %v", err)
+	}
+	if len(companies) != 7 {
+		t.Fatalf("len(companies) = %d, want 7", len(companies))
+	}
+
+	_, ci := doRequest(t, http.MethodGet, srv.URL+"/api/games/"+id+"/cities", "")
+	var cities []*core.City
+	if err := json.Unmarshal(ci.Data, &cities); err != nil {
+		t.Fatalf("cities: %v", err)
+	}
+	if len(cities) != 10 {
+		t.Fatalf("len(cities) = %d, want 10", len(cities))
+	}
+
+	var player *core.Company
+	for _, c := range companies {
+		if c.ID == "hankyu" {
+			player = c
+		}
+	}
+	if player == nil || !player.IsPlayer {
+		t.Errorf("hankyu がプレイヤー会社でない: %+v", player)
+	}
+}
+
+func TestBuildLine_AfterCreate(t *testing.T) {
+	srv, _ := newDataServer(t)
+	id, _ := createTestGame(t, srv, `{"company_id":"hankyu","seed":7}`)
+
+	// 都市投入はデータ結線済み。直接 build できる。
+	resp, env := doRequest(t, http.MethodPost, srv.URL+"/api/games/"+id+"/actions",
+		`{"type":"build_line","payload":{"from":"umeda","to":"takarazuka","gauge":1067,"double":false}}`)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %+v", resp.StatusCode, env.Errors)
+	}
+	if !env.OK {
+		t.Fatalf("ok = false: %+v", env.Errors)
+	}
+	if !hasEventType(env.Events, core.EventLineOpened) {
+		t.Errorf("events = %+v, want line_opened", env.Events)
+	}
+
+	_, le := doRequest(t, http.MethodGet, srv.URL+"/api/games/"+id+"/lines", "")
+	var lines []*core.Line
+	if err := json.Unmarshal(le.Data, &lines); err != nil {
+		t.Fatalf("unmarshal lines: %v", err)
+	}
+	if len(lines) != 1 {
+		t.Fatalf("len(lines) = %d, want 1", len(lines))
+	}
+}
+
 // ────────────────────────────────────────────
 // ユーティリティ
 // ────────────────────────────────────────────
-
 func hasEventType(events []core.Event, typ string) bool {
 	for _, e := range events {
 		if e.Type == typ {

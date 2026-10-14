@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/you/jrt/internal/core"
+	"github.com/you/jrt/internal/data"
 	"github.com/you/jrt/internal/store"
 )
 
@@ -12,18 +13,26 @@ import (
 //
 // sessions は ID → Session のマップであり、mu で保護する。
 // store は永続化層であり、セッションの生成・ロード・削除のたびに利用する。
+// data は新規ゲームへ投入する都市・会社データであり、nil の場合は投入しない。
 type Hub struct {
 	mu       sync.RWMutex
 	sessions map[string]*Session
 	store    store.Store
+	data     *data.Dataset
 }
 
-// New は空の Hub を生成する。
-func New(st store.Store) *Hub {
+// New は空の Hub を生成する。ds は nil でもよい。
+func New(st store.Store, ds *data.Dataset) *Hub {
 	return &Hub{
 		sessions: map[string]*Session{},
 		store:    st,
+		data:     ds,
 	}
+}
+
+// Data は Hub が保持するゲームデータを返す。未設定なら nil。
+func (h *Hub) Data() *data.Dataset {
+	return h.data
 }
 
 // Session は 1 ゲームの状態・ロック・購読者を保持する。

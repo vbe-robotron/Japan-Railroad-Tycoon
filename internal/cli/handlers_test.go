@@ -31,7 +31,7 @@ func newTestSession(t *testing.T) (*Session, *hub.Hub) {
 	}
 	t.Cleanup(func() { _ = st.Close() })
 
-	h := hub.New(st)
+	h := hub.New(st, nil)
 	srv := httptest.NewServer(api.NewRouter(h, st))
 	t.Cleanup(srv.Close)
 

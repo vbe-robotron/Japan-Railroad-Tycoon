@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0",
+  "cities": [
+    {
+      "id": "umeda",
+      "name": "梅田",
+      "prefecture": "大阪府",
+      "representative_node": "umeda",
+      "lat": 34.7055,
+      "lon": 135.4983,
+      "population": 120000,
+      "land_value": 60,
+      "tags": ["kansai", "urban", "terminal"]
+    },
+    {
+      "id": "takarazuka",
+      "name": "宝塚",
+      "prefecture": "兵庫県",
+      "representative_node": "takarazuka",
+      "lat": 34.7995,
+      "lon": 135.3468,
+      "population": 30000,
+      "land_value": 20,
+      "tags": ["kansai", "suburb", "resort"]
+    },
+    {
+      "id": "mino",
+      "name": "箕面",
+      "prefecture": "大阪府",
+      "representative_node": "mino",
+      "lat": 34.8269,
+      "lon": 135.4705,
+      "population": 20000,
+      "land_value": 15,
+      "tags": ["kansai", "suburb"]
+    },
+    {
+      "id": "juso",
+      "name": "十三",
+      "prefecture": "大阪府",
+      "representative_node": "juso",
+      "lat": 34.7235,
+      "lon": 135.4843,
+      "population": 40000,
+      "land_value": 40,
+      "tags": ["kansai", "urban"]
+    },
+    {
+      "id": "shonai",
+      "name": "庄内",
+      "prefecture": "大阪府",
+      "representative_node": "shonai",
+      "lat": 34.7620,
+      "lon": 135.4700,
+      "population": 15000,
+      "land_value": 25,
+      "tags": ["kansai", "suburb"]
+    },
+    {
+      "id": "kobe",
+      "name": "神戸",
+      "prefecture": "兵庫県",
+      "representative_node": "kobe",
+      "lat": 34.6901,
+      "lon": 135.1955,
+      "population": 400000,
+      "land_value": 80,
+      "tags": ["kansai", "urban", "port", "terminal"]
+    },
+    {
+      "id": "kyoto",
+      "name": "京都",
+      "prefecture": "京都府",
+      "representative_node": "kyoto",
+      "lat": 34.9858,
+      "lon": 135.7588,
+      "population": 350000,
+      "land_value": 75,
+      "tags": ["kansai", "urban", "historic", "terminal"]
+    },
+    {
+      "id": "nara",
+      "name": "奈良",
+      "prefecture": "奈良県",
+      "representative_node": "nara",
+      "lat": 34.6851,
+      "lon": 135.8048,
+      "population": 150000,
+      "land_value": 40,
+      "tags": ["kansai", "urban", "historic"]
+    },
+    {
+      "id": "osaka_namba",
+      "name": "難波",
+      "prefecture": "大阪府",
+      "representative_node": "osaka_namba",
+      "lat": 34.6660,
+      "lon": 135.5000,
+      "population": 80000,
+      "land_value": 55,
+      "tags": ["kansai", "urban", "terminal"]
+    },
+    {
+      "id": "sakai",
+      "name": "堺",
+      "prefecture": "大阪府",
+      "representative_node": "sakai",
+      "lat": 34.5733,
+      "lon": 135.4830,
+      "population": 100000,
+      "land_value": 30,
+      "tags": ["kansai", "urban", "port"]
+    }
+  ]
+}

@@ -86,8 +86,8 @@ func TestHandleStart(t *testing.T) {
 	if s.State == nil || s.State.PlayerID != "hankyu" {
 		t.Fatalf("State = %+v", s.State)
 	}
-	if s.State.Company == nil || !s.State.Company.IsPlayer {
-		t.Errorf("company = %+v, want player", s.State.Company)
+	if s.State.Company == nil || s.State.Company.ID != "hankyu" {
+		t.Errorf("company = %+v, want player hankyu", s.State.Company)
 	}
 }
 

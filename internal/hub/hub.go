@@ -35,6 +35,11 @@ func (h *Hub) Data() *data.Dataset {
 	return h.data
 }
 
+// Store は Hub が保持する永続化層を返す。未設定なら nil。
+func (h *Hub) Store() store.Store {
+	return h.store
+}
+
 // Session は 1 ゲームの状態・ロック・購読者を保持する。
 //
 // mu はゲーム状態（Game）を保護し、Lock/Unlock で外部に公開する。

@@ -39,6 +39,9 @@ func newTestServer(t *testing.T, st store.Store) (*httptest.Server, *hub.Hub) {
 	return srv, h
 }
 
+// gameStateResponse はサーバーが返す状態要約。GameState の別名。
+type gameStateResponse = GameState
+
 // envelope は Response を汎用的に読み取るための型。
 type envelope struct {
 	OK     bool            `json:"ok"`
@@ -150,11 +153,14 @@ func TestCreateGame(t *testing.T) {
 	if data.Company == nil {
 		t.Fatalf("company is nil")
 	}
-	if !data.Company.IsPlayer {
-		t.Error("company.IsPlayer = false")
+	if data.Company.Name == "" {
+		t.Error("company.Name is empty")
 	}
 	if data.Company.Cash != 9_000_000 {
 		t.Errorf("cash = %d, want 9000000", data.Company.Cash)
+	}
+	if data.Company.Reputation != 50 {
+		t.Errorf("reputation = %d, want 50", data.Company.Reputation)
 	}
 	if data.Date.IsZero() {
 		t.Error("date should not be zero")

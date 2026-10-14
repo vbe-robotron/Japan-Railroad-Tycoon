@@ -57,8 +57,8 @@ func TestClient_CreateGame(t *testing.T) {
 	if state.PlayerID != "hankyu" {
 		t.Errorf("player_id = %q, want hankyu", state.PlayerID)
 	}
-	if state.Company == nil || !state.Company.IsPlayer {
-		t.Fatalf("company = %+v, want player company", state.Company)
+	if state.Company == nil || state.Company.Cash != 9_000_000 {
+		t.Fatalf("company = %+v, want player company with 9000000 cash", state.Company)
 	}
 	if state.Rank != 1 {
 		t.Errorf("rank = %d, want 1", state.Rank)

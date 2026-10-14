@@ -41,41 +41,50 @@ func session(h *hub.Hub, w http.ResponseWriter, r *http.Request) (*hub.Session, 
 	return s, true
 }
 
-// gameStateResponse はゲーム状態の要約。
-type gameStateResponse struct {
-	ID       string        `json:"id"`
-	Date     core.Date     `json:"date"`
-	Turn     int           `json:"turn"`
-	PlayerID string        `json:"player_id"`
-	Company  *core.Company `json:"company,omitempty"`
-	Rank     int           `json:"rank"`
-}
-
-// stateOf はゲームから状態要約を生成する。呼び出し側でロックすること。
-func stateOf(g *core.Game) gameStateResponse {
-	return gameStateResponse{
-		ID:       g.ID,
-		Date:     g.Date,
-		Turn:     g.Turn,
-		PlayerID: g.PlayerID,
-		Company:  g.PlayerCompany(),
-		Rank:     rankOf(g),
+// buildGameState は Game から GameState を組み立てる。
+//
+// 呼び出し側で Game をロックすること。
+func buildGameState(g *core.Game) *GameState {
+	st := &GameState{
+		ID:             g.ID,
+		Date:           g.Date,
+		Turn:           g.Turn,
+		PlayerID:       g.PlayerID,
+		TotalCompanies: len(g.Companies),
+		Rank:           computeRank(g),
 	}
+	if c := g.PlayerCompany(); c != nil {
+		st.Company = &CompanyView{
+			ID:            c.ID,
+			Name:          c.Name,
+			Cash:          c.Cash,
+			Debt:          c.Debt,
+			StockPrice:    c.StockPrice,
+			Reputation:    c.Reputation,
+			LineCount:     len(c.Lines),
+			FacilityCount: len(c.Facilities),
+			MonthlyProfit: c.MonthlyProfit(g),
+			AnnualProfit:  c.AnnualProfit(g),
+		}
+	}
+	return st
 }
 
-// rankOf は純資産順の順位（1 が最上位）を返す。
-func rankOf(g *core.Game) int {
-	player := g.PlayerCompany()
-	if player == nil {
+// computeRank は純資産で順位（1 が最上位）を計算する。
+//
+// プレイヤー会社が存在しなければ 0 を返す。解散済みの会社は順位から除く。
+func computeRank(g *core.Game) int {
+	c := g.PlayerCompany()
+	if c == nil {
 		return 0
 	}
-	pv := player.NetAssetsWithLines(g)
+	myAssets := c.NetAssetsWithLines(g)
 	rank := 1
-	for id, c := range g.Companies {
-		if id == player.ID {
+	for _, other := range g.Companies {
+		if other.ID == c.ID || other.Dissolved != nil {
 			continue
 		}
-		if c.NetAssetsWithLines(g) > pv {
+		if other.NetAssetsWithLines(g) > myAssets {
 			rank++
 		}
 	}
@@ -91,9 +100,9 @@ type createGameRequest struct {
 
 // createGame は新規ゲームを作成する。
 //
-// seed が 0 の場合は現在時刻から決定する。作成直後に空のプレイヤー会社を
-// 追加する（Phase 8 で本格的な初期会社を作るまでの暫定）。
-func createGame(h *hub.Hub, st store.Store) http.HandlerFunc {
+// seed が 0 の場合は現在時刻から決定する。作成直後にデータを投入し、
+// 開始日を設定して AI を初期化したうえで、完全な GameState を返す。
+func createGame(h *hub.Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req createGameRequest
 		if r.Body != nil {
@@ -115,10 +124,13 @@ func createGame(h *hub.Hub, st store.Store) http.HandlerFunc {
 		}
 
 		sess.Lock()
+		defer sess.Unlock()
+
 		// mod データが結線されていれば都市・会社を投入する。
 		if ds := h.Data(); ds != nil {
 			ds.ApplyToGame(sess.Game, req.CompanyID)
 		}
+		// データに会社が無い場合は暫定のプレイヤー会社を作る。
 		if _, ok := sess.Game.Companies[req.CompanyID]; !ok {
 			c := core.NewCompany(req.CompanyID, req.CompanyID, req.CompanyID)
 			c.IsPlayer = true
@@ -127,16 +139,19 @@ func createGame(h *hub.Hub, st store.Store) http.HandlerFunc {
 			c.StockPrice = 1000
 			sess.Game.AddCompany(c)
 		}
-		if sess.Game.Date.IsZero() {
-			sess.Game.Date = defaultStartDate
-		}
+		// 開始日を設定する。
+		sess.Game.Date = defaultStartDate
 		// 全社に AI を割り当てる（プレイヤー会社は HistoryIgnore）。
 		sess.Game.InitAIs()
-		_ = st.SaveGame(r.Context(), sess.Game)
-		resp := stateOf(sess.Game)
-		sess.Unlock()
+		// 変更後の状態を保存する。
+		if st := h.Store(); st != nil {
+			if err := st.SaveGame(r.Context(), sess.Game); err != nil {
+				writeError(w, http.StatusInternalServerError, "PERSIST_FAILED", err.Error())
+				return
+			}
+		}
 
-		writeJSON(w, http.StatusCreated, Response{OK: true, Data: resp})
+		writeJSON(w, http.StatusCreated, Response{OK: true, Data: buildGameState(sess.Game)})
 	}
 }
 
@@ -157,7 +172,7 @@ func getGame(h *hub.Hub) http.HandlerFunc {
 			return
 		}
 		sess.Lock()
-		resp := stateOf(sess.Game)
+		resp := buildGameState(sess.Game)
 		sess.Unlock()
 		writeOK(w, resp, nil)
 	}

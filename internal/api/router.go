@@ -16,7 +16,7 @@ func NewRouter(h *hub.Hub, st store.Store) http.Handler {
 
 	mux.HandleFunc("GET /health", health)
 
-	mux.HandleFunc("POST /api/games", createGame(h, st))
+	mux.HandleFunc("POST /api/games", createGame(h))
 	mux.HandleFunc("GET /api/games", listGames(h))
 	mux.HandleFunc("GET /api/games/{id}", getGame(h))
 	mux.HandleFunc("DELETE /api/games/{id}", deleteGame(h))

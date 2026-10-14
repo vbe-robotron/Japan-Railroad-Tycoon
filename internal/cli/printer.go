@@ -55,8 +55,8 @@ func printStatus(st *api.GameState) {
 		printKV(Stdout, "会社", c.Name)
 		printKV(Stdout, "現金", formatYen(c.Cash))
 		printKV(Stdout, "負債", formatYen(c.Debt))
-		printKV(Stdout, "純資産", formatYen(c.NetAssets()))
-		fmt.Fprintf(Stdout, "  %-10s %d / %d 社\n", "路線:", len(c.Lines), st.TotalCompanies)
+		printKV(Stdout, "純資産", formatYen(c.Cash-c.Debt))
+		fmt.Fprintf(Stdout, "  %-10s %d 本\n", "路線:", c.LineCount)
 		printKV(Stdout, "評判", fmt.Sprintf("%d", c.Reputation))
 	} else {
 		colorWarn.Fprintln(Stdout, "  プレイヤー会社がありません")

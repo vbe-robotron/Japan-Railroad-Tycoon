@@ -45,7 +45,7 @@ func streamWS(h *hub.Hub) http.HandlerFunc {
 			"type": "snapshot",
 			"date": sess.Game.Date,
 			"turn": sess.Game.Turn,
-			"game": stateOf(sess.Game),
+			"game": buildGameState(sess.Game),
 		}
 		sess.Unlock()
 

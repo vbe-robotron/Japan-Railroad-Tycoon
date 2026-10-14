@@ -24,12 +24,13 @@
 - [x] Phase 3: Hub/Session
 - [x] Phase 4: HTTP API
 - [x] Phase 5: api.Client
+- [x] Phase 6: CLI REPL
 
 ## 進行中
-- [ ] Phase 6: CLI REPL
+- [ ] Phase 7: データファイル
 
 ## 次
-- [ ] Phase 6: CLI REPL
+- [ ] Phase 7: データファイル
 
 ## Phase 1-8-2.5 の目標
 
@@ -341,6 +342,30 @@
     `GameSummary` を組み立てる。
   - `Stream` は `coder/websocket` で接続し、受信ゴルーチンから
     `chan StreamMessage`（snapshot / events）を非ブロッキングに返す。
-  - テスト: client / state / action / error / stream の計 35 件、
-    `httptest` 使用。カバレッジ 92.0%、`-race` 全通過。
-    core / store / hub は無変更。
+   - テスト: client / state / action / error / stream の計 35 件、
+     `httptest` 使用。カバレッジ 92.0%、`-race` 全通過。
+     core / store / hub は無変更。
+- Phase 6 の CLI REPL:
+  - `internal/cli` を新設し、CLI ロジックを `cmd/cli` から分離。
+    `session.go` / `parser.go` / `completer.go` / `printer.go` / `handlers.go` /
+    `commands.go` / `events.go` / `doc.go` とハンドラ群
+    （`handle_session` / `handle_status` / `handle_build` / `handle_operate` /
+    `handle_ma` / `handle_turn` / `handle_help`）。
+  - `cmd/cli/main.go` を `chzyer/readline` ベースの REPL に更新
+    （履歴 `~/.jrt_history`、Tab 補完、`-server` フラグ）。`quit` は
+    `ErrQuit` を返してループを抜ける。`cmd/play` は無変更。
+  - パーサは `--key value` / `--key=value` → Options、`--flag` → Flags、
+    引用符付き文字列を 1 トークンとして扱う（`tokenize`）。
+  - 色付き出力は `fatih/color`、テーブルは `olekukonko/tablewriter`。
+    重要度ごとに色分け（success 緑 / warning 黄 / danger 赤 / info シアン）。
+  - WebSocket イベントは `StartEventListener` が非同期表示し、プロンプトを
+    `Refresh` する。HTTP 応答と WS 配信で同じイベントが二重に届くため、
+    イベント ID で重複を除外する（`Session.printEvents`）。
+  - `Execute` は別名（et/st/ls/bf/q/?）を解決。ゲーム開始前は
+    start/load/list/quit/help のみ許可し、他は `ErrNotRunning` を返す。
+  - テスト: parser / session / handlers の計 29 件。カバレッジ 85.5%、
+    `-race` 全通過。`httptest` で API サーバーを立ててハンドラを検証。
+  - 既知の制約: `createGame`（Phase 4）は都市を投入しないため、新規
+    サーバーに対する `build` は `FROM_NOT_FOUND` を返す。`start → status →
+    et → lines` は動作する。都市・会社データの投入は Phase 7/8 で行う。
+  - core / store / hub / api は無変更。

@@ -111,11 +111,11 @@ func TestApplyToGame_Vanilla(t *testing.T) {
 	}
 	g := core.NewGame(7, "hankyu")
 	ds.ApplyToGame(g, "hankyu")
-	if len(g.Cities) != 10 {
-		t.Errorf("len(Cities) = %d, want 10", len(g.Cities))
+	if len(g.Cities) != 36 {
+		t.Errorf("len(Cities) = %d, want 36", len(g.Cities))
 	}
-	if len(g.Companies) != 7 {
-		t.Errorf("len(Companies) = %d, want 7", len(g.Companies))
+	if len(g.Companies) != 20 {
+		t.Errorf("len(Companies) = %d, want 20", len(g.Companies))
 	}
 	if !g.Companies["hankyu"].IsPlayer {
 		t.Error("hankyu がプレイヤーでない")

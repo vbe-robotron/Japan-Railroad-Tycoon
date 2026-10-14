@@ -498,8 +498,8 @@ func TestCreateGame_WithData(t *testing.T) {
 	if err := json.Unmarshal(ce.Data, &companies); err != nil {
 		t.Fatalf("companies: %v", err)
 	}
-	if len(companies) != 7 {
-		t.Fatalf("len(companies) = %d, want 7", len(companies))
+	if len(companies) != 20 {
+		t.Fatalf("len(companies) = %d, want 20", len(companies))
 	}
 
 	_, ci := doRequest(t, http.MethodGet, srv.URL+"/api/games/"+id+"/cities", "")
@@ -507,8 +507,8 @@ func TestCreateGame_WithData(t *testing.T) {
 	if err := json.Unmarshal(ci.Data, &cities); err != nil {
 		t.Fatalf("cities: %v", err)
 	}
-	if len(cities) != 10 {
-		t.Fatalf("len(cities) = %d, want 10", len(cities))
+	if len(cities) != 36 {
+		t.Fatalf("len(cities) = %d, want 36", len(cities))
 	}
 
 	var player *core.Company

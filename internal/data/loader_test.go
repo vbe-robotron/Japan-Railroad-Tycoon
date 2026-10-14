@@ -16,11 +16,11 @@ func TestLoad_Vanilla(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(ds.Cities) != 10 {
-		t.Errorf("len(Cities) = %d, want 10", len(ds.Cities))
+	if len(ds.Cities) != 36 {
+		t.Errorf("len(Cities) = %d, want 36", len(ds.Cities))
 	}
-	if len(ds.Companies) != 7 {
-		t.Errorf("len(Companies) = %d, want 7", len(ds.Companies))
+	if len(ds.Companies) != 20 {
+		t.Errorf("len(Companies) = %d, want 20", len(ds.Companies))
 	}
 
 	umeda, ok := findCity(ds, "umeda")
@@ -219,6 +219,76 @@ func TestLoad_HistoricalLines(t *testing.T) {
 	}
 	if takara.DisplayName != "宝塚線" {
 		t.Errorf("DisplayName = %q", takara.DisplayName)
+	}
+}
+
+// TestLoad_AllCompanies は全 20 社が読み込まれることを確認する。
+func TestLoad_AllCompanies(t *testing.T) {
+	ds, err := Load(vanillaDir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(ds.Companies) != 20 {
+		t.Fatalf("len(Companies) = %d, want 20", len(ds.Companies))
+	}
+	for _, id := range []string{"tokyu", "seibu", "odakyu", "meitetsu", "iyotetsu"} {
+		if _, ok := findCompany(ds, id); !ok {
+			t.Errorf("会社 %q が見つからない", id)
+		}
+	}
+}
+
+// TestLoad_AllCities は全 36 都市が読み込まれることを確認する。
+func TestLoad_AllCities(t *testing.T) {
+	ds, err := Load(vanillaDir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(ds.Cities) != 36 {
+		t.Fatalf("len(Cities) = %d, want 36", len(ds.Cities))
+	}
+	for _, id := range []string{"tokyo", "yokohama", "nagoya", "matsuyama"} {
+		if _, ok := findCity(ds, id); !ok {
+			t.Errorf("都市 %q が見つからない", id)
+		}
+	}
+}
+
+// TestLoad_AllHistoricalLines は全 38 路線が読み込まれることを確認する。
+func TestLoad_AllHistoricalLines(t *testing.T) {
+	ds, err := Load(vanillaDir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(ds.HistoricalLines) != 38 {
+		t.Fatalf("len(HistoricalLines) = %d, want 38", len(ds.HistoricalLines))
+	}
+}
+
+// TestValidate_AllRefsExist は全路線の会社・都市参照が解決できることを確認する。
+func TestValidate_AllRefsExist(t *testing.T) {
+	ds, err := Load(vanillaDir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	companies := make(map[string]bool, len(ds.Companies))
+	for _, c := range ds.Companies {
+		companies[c.ID] = true
+	}
+	cities := make(map[string]bool, len(ds.Cities))
+	for _, c := range ds.Cities {
+		cities[c.ID] = true
+	}
+	for i, l := range ds.HistoricalLines {
+		if !companies[l.CompanyID] {
+			t.Errorf("lines[%d] 会社 %q が存在しない", i, l.CompanyID)
+		}
+		if !cities[l.From] {
+			t.Errorf("lines[%d] 起点 %q が存在しない", i, l.From)
+		}
+		if !cities[l.To] {
+			t.Errorf("lines[%d] 終点 %q が存在しない", i, l.To)
+		}
 	}
 }
 

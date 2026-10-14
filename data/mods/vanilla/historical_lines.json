@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "lines": [
+    {
+      "company_id": "hankyu",
+      "from": "umeda",
+      "to": "takarazuka",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1910,
+      "opened_month": 3,
+      "display_name": "宝塚線"
+    },
+    {
+      "company_id": "hankyu",
+      "from": "umeda",
+      "to": "mino",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1910,
+      "opened_month": 4,
+      "display_name": "箕面線"
+    },
+    {
+      "company_id": "hankyu",
+      "from": "umeda",
+      "to": "kobe",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1920,
+      "opened_month": 7,
+      "display_name": "神戸線"
+    },
+    {
+      "company_id": "hankyu",
+      "from": "umeda",
+      "to": "kyoto",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1928,
+      "opened_month": 11,
+      "display_name": "京都線"
+    },
+    {
+      "company_id": "hanshin",
+      "from": "umeda",
+      "to": "kobe",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1905,
+      "opened_month": 4,
+      "display_name": "本線"
+    },
+    {
+      "company_id": "keihan",
+      "from": "umeda",
+      "to": "kyoto",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1910,
+      "opened_month": 4,
+      "display_name": "京阪本線"
+    },
+    {
+      "company_id": "nankai",
+      "from": "osaka_namba",
+      "to": "sakai",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1885,
+      "opened_month": 12,
+      "display_name": "南海本線"
+    },
+    {
+      "company_id": "kintetsu",
+      "from": "osaka_namba",
+      "to": "nara",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1914,
+      "opened_month": 4,
+      "display_name": "奈良線"
+    },
+    {
+      "company_id": "kintetsu",
+      "from": "kyoto",
+      "to": "nara",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1928,
+      "opened_month": 11,
+      "display_name": "京都線"
+    },
+    {
+      "company_id": "sanyo",
+      "from": "kobe",
+      "to": "sakai",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1910,
+      "opened_month": 3,
+      "display_name": "本線"
+    },
+    {
+      "company_id": "jnr",
+      "from": "kobe",
+      "to": "kyoto",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1877,
+      "opened_month": 2,
+      "display_name": "東海道本線"
+    },
+    {
+      "company_id": "jnr",
+      "from": "kyoto",
+      "to": "umeda",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1877,
+      "opened_month": 11,
+      "display_name": "東海道本線"
+    }
+  ]
+}

@@ -201,6 +201,110 @@ func TestValidate_InvalidFields(t *testing.T) {
 	})
 }
 
+func TestLoad_HistoricalLines(t *testing.T) {
+	ds, err := Load(vanillaDir)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if len(ds.HistoricalLines) < 11 {
+		t.Fatalf("len(HistoricalLines) = %d, want >= 11", len(ds.HistoricalLines))
+	}
+
+	takara, ok := findHistoricalLine(ds, "hankyu", "umeda", "takarazuka")
+	if !ok {
+		t.Fatal("阪急 梅田〜宝塚 が見つからない")
+	}
+	if takara.Gauge != 1435 || takara.OpenedYear != 1910 || takara.OpenedMonth != 3 {
+		t.Errorf("宝塚線 = %+v", takara)
+	}
+	if takara.DisplayName != "宝塚線" {
+		t.Errorf("DisplayName = %q", takara.DisplayName)
+	}
+}
+
+// findHistoricalLine は会社・区間で史実路線を検索する。
+func findHistoricalLine(ds *Dataset, company, from, to string) (HistoricalLineDef, bool) {
+	for _, l := range ds.HistoricalLines {
+		if l.CompanyID == company && l.From == from && l.To == to {
+			return l, true
+		}
+	}
+	return HistoricalLineDef{}, false
+}
+
+func TestValidate_HistoricalLine_UnknownCompany(t *testing.T) {
+	ds := &Dataset{
+		Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}},
+		Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+		HistoricalLines: []HistoricalLineDef{{CompanyID: "nope", From: "a", To: "a", Gauge: 1435, OpenedYear: 1900}},
+	}
+	if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+		t.Errorf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func TestValidate_HistoricalLine_UnknownCity(t *testing.T) {
+	ds := &Dataset{
+		Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}},
+		Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+		HistoricalLines: []HistoricalLineDef{{CompanyID: "c", From: "a", To: "z", Gauge: 1435, OpenedYear: 1900}},
+	}
+	if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+		t.Errorf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func TestValidate_HistoricalLine_SameCity(t *testing.T) {
+	ds := &Dataset{
+		Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}},
+		Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+		HistoricalLines: []HistoricalLineDef{{CompanyID: "c", From: "a", To: "a", Gauge: 1435, OpenedYear: 1900}},
+	}
+	if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+		t.Errorf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func TestValidate_HistoricalLine_InvalidGauge(t *testing.T) {
+	ds := &Dataset{
+		Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}, {ID: "b", Name: "B", Lat: 0, Lon: 0}},
+		Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+		HistoricalLines: []HistoricalLineDef{{CompanyID: "c", From: "a", To: "b", Gauge: 999, OpenedYear: 1900}},
+	}
+	if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+		t.Errorf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func TestValidate_HistoricalLine_InvalidYear(t *testing.T) {
+	ds := &Dataset{
+		Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}, {ID: "b", Name: "B", Lat: 0, Lon: 0}},
+		Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+		HistoricalLines: []HistoricalLineDef{{CompanyID: "c", From: "a", To: "b", Gauge: 1435, OpenedYear: 1869}},
+	}
+	if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+		t.Errorf("err = %v, want ErrInvalidData", err)
+	}
+}
+
+func TestValidate_HistoricalLine_EmptyFields(t *testing.T) {
+	cases := []HistoricalLineDef{
+		{CompanyID: "", From: "a", To: "b", Gauge: 1435, OpenedYear: 1900},
+		{CompanyID: "c", From: "", To: "b", Gauge: 1435, OpenedYear: 1900},
+		{CompanyID: "c", From: "a", To: "", Gauge: 1435, OpenedYear: 1900},
+	}
+	for i, l := range cases {
+		ds := &Dataset{
+			Cities:          []CityDef{{ID: "a", Name: "A", Lat: 0, Lon: 0}, {ID: "b", Name: "B", Lat: 0, Lon: 0}},
+			Companies:       []CompanyDef{{ID: "c", Name: "C", Reputation: 50}},
+			HistoricalLines: []HistoricalLineDef{l},
+		}
+		if err := ds.Validate(); !errors.Is(err, ErrInvalidData) {
+			t.Errorf("case %d: err = %v, want ErrInvalidData", i, err)
+		}
+	}
+}
+
 func TestLoadJSON_NotFound(t *testing.T) {
 	var out struct{}
 	if err := loadJSON(filepath.Join(t.TempDir(), "x.json"), &out); !errors.Is(err, fs.ErrNotExist) {

@@ -26,12 +26,13 @@
 - [x] Phase 5: api.Client
 - [x] Phase 6: CLI REPL
 - [x] Phase 7-1: データローダー + 関西データ
+- [x] Phase 7-2: 史実路線データ
 
 ## 進行中
-- [ ] Phase 7-2: 史実路線データ
+- [ ] Phase 7-1.5: 20社拡張
 
 ## 次
-- [ ] Phase 7-2: 史実路線データ
+- [ ] Phase 8: AI（史実路線を参照）
 
 ## Phase 1-8-2.5 の目標
 

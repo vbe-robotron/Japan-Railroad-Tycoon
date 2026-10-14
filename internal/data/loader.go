@@ -16,8 +16,9 @@ var ErrDuplicateID = errors.New("duplicate id")
 
 // Dataset は 1 つの mod から読み込んだゲームデータの集合。
 type Dataset struct {
-	Cities    []CityDef
-	Companies []CompanyDef
+	Cities          []CityDef
+	Companies       []CompanyDef
+	HistoricalLines []HistoricalLineDef
 }
 
 // CityDef は都市定義（cities.json の 1 要素）。
@@ -49,7 +50,22 @@ type CompanyDef struct {
 	Reputation        int      `json:"reputation"`
 }
 
-// citiesFile / companiesFile は JSON ファイルのトップレベル構造。
+// HistoricalLineDef は史実路線定義（historical_lines.json の 1 要素）。
+//
+// 参照用データであり、Game へは投入しない。Phase 8 の AI や
+// プレイヤーの参考情報として利用する。
+type HistoricalLineDef struct {
+	CompanyID   string `json:"company_id"`
+	From        string `json:"from"`
+	To          string `json:"to"`
+	Gauge       int    `json:"gauge"`
+	Double      bool   `json:"double"`
+	OpenedYear  int    `json:"opened_year"`
+	OpenedMonth int    `json:"opened_month"`
+	DisplayName string `json:"display_name"`
+}
+
+// citiesFile / companiesFile / linesFile は JSON ファイルのトップレベル構造。
 type citiesFile struct {
 	SchemaVersion string    `json:"schema_version"`
 	Cities        []CityDef `json:"cities"`
@@ -60,9 +76,15 @@ type companiesFile struct {
 	Companies     []CompanyDef `json:"companies"`
 }
 
+type linesFile struct {
+	SchemaVersion string              `json:"schema_version"`
+	Lines         []HistoricalLineDef `json:"lines"`
+}
+
 // Load は dataDir 配下の mods/vanilla からデータを読み込む。
 //
 // cities.json と companies.json を読み込み、Validate で整合性を確認する。
+// historical_lines.json は参照用データのため、存在する場合のみ読み込む。
 func Load(dataDir string) (*Dataset, error) {
 	if dataDir == "" {
 		return nil, fmt.Errorf("%w: データディレクトリが空です", ErrInvalidData)
@@ -78,6 +100,17 @@ func Load(dataDir string) (*Dataset, error) {
 	}
 
 	ds := &Dataset{Cities: cf.Cities, Companies: comp.Companies}
+
+	// 史実路線は参照用データのため、ファイルが無くてもエラーにしない。
+	var lf linesFile
+	if err := loadJSON(filepath.Join(dataDir, "mods/vanilla/historical_lines.json"), &lf); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return nil, err
+		}
+	} else {
+		ds.HistoricalLines = lf.Lines
+	}
+
 	if err := ds.Validate(); err != nil {
 		return nil, err
 	}
@@ -154,6 +187,48 @@ func (d *Dataset) Validate() error {
 		}
 		if c.Reputation < 0 || c.Reputation > 100 {
 			return fmt.Errorf("%w: company %q の評判が範囲外です: %d", ErrInvalidData, c.ID, c.Reputation)
+		}
+	}
+
+	// 史実路線は参照用だが、参照先の整合性と値域は厳密に検証する。
+	seenCompanyIDs := make(map[string]bool, len(d.Companies))
+	for _, c := range d.Companies {
+		seenCompanyIDs[c.ID] = true
+	}
+	seenCityIDs := make(map[string]bool, len(d.Cities))
+	for _, c := range d.Cities {
+		seenCityIDs[c.ID] = true
+	}
+
+	for i, l := range d.HistoricalLines {
+		if l.CompanyID == "" {
+			return fmt.Errorf("%w: historical_lines[%d] の会社IDが空です", ErrInvalidData, i)
+		}
+		if !seenCompanyIDs[l.CompanyID] {
+			return fmt.Errorf("%w: historical_lines[%d] の会社 %q が存在しません", ErrInvalidData, i, l.CompanyID)
+		}
+		if l.From == "" {
+			return fmt.Errorf("%w: historical_lines[%d] の起点が空です", ErrInvalidData, i)
+		}
+		if l.To == "" {
+			return fmt.Errorf("%w: historical_lines[%d] の終点が空です", ErrInvalidData, i)
+		}
+		if !seenCityIDs[l.From] {
+			return fmt.Errorf("%w: historical_lines[%d] の起点 %q が存在しません", ErrInvalidData, i, l.From)
+		}
+		if !seenCityIDs[l.To] {
+			return fmt.Errorf("%w: historical_lines[%d] の終点 %q が存在しません", ErrInvalidData, i, l.To)
+		}
+		if l.From == l.To {
+			return fmt.Errorf("%w: historical_lines[%d] の起点と終点が同一です: %q", ErrInvalidData, i, l.From)
+		}
+		switch l.Gauge {
+		case 762, 1067, 1435:
+		default:
+			return fmt.Errorf("%w: historical_lines[%d] の軌間が不正です: %d", ErrInvalidData, i, l.Gauge)
+		}
+		if l.OpenedYear < 1870 || l.OpenedYear > 1950 {
+			return fmt.Errorf("%w: historical_lines[%d] の開業年が範囲外です: %d", ErrInvalidData, i, l.OpenedYear)
 		}
 	}
 

@@ -278,6 +278,72 @@ func TestEndTurn_WithAI_Deterministic(t *testing.T) {
 	}
 }
 
+// newAdaptiveGame は適応 AI の 100 ターンテスト用のゲームを返す。
+func newAdaptiveGame(seed int64) (*Game, *Company) {
+	g := NewGame(seed, "player")
+	g.Date = Date{Year: 1910, Month: 1}
+
+	coords := map[string][2]float64{
+		"umeda": {34.70, 135.50},
+		"kobe":  {34.69, 135.20},
+		"kyoto": {35.01, 135.77},
+		"osaka": {34.65, 135.50},
+		"nara":  {34.68, 135.80},
+		"otsu":  {35.00, 135.87},
+	}
+	for id, ll := range coords {
+		g.AddCity(&City{ID: id, Name: id, Population: 1_000_000, LandValue: 50, Lat: ll[0], Lon: ll[1]})
+	}
+
+	c := NewCompany("hankyu", "hankyu", "阪急")
+	c.Cash = 200_000_000
+	c.CreditLine = 50_000_000
+	c.Region = "kansai"
+	g.AddCompany(c)
+
+	g.AIs["hankyu"] = &AI{
+		CompanyID:   "hankyu",
+		Personality: DefaultPersonality("hankyu"),
+		HistoryMode: HistoryIgnore,
+	}
+	return g, c
+}
+
+func TestEndTurn_WithAdaptiveAI(t *testing.T) {
+	g, c := newAdaptiveGame(1907)
+
+	for i := 0; i < 100; i++ {
+		g.EndTurn()
+	}
+
+	if g.Date.Year != 1918 || g.Date.Month != 5 {
+		t.Errorf("Date = %v, want 1918年5月", g.Date)
+	}
+	if len(c.Lines) < 2 {
+		t.Errorf("AI が路線網を拡大していない: Lines = %d", len(c.Lines))
+	}
+	t.Logf("100ターン後: 路線 %d 本, 施設 %d, 資金 %s, 借金 %s",
+		len(c.Lines), len(c.Facilities), FormatYen(c.Cash), FormatYen(c.Debt))
+}
+
+func TestEndTurn_WithAdaptiveAI_Deterministic(t *testing.T) {
+	a, _ := newAdaptiveGame(1907)
+	b, _ := newAdaptiveGame(1907)
+
+	for i := 0; i < 36; i++ {
+		ea := a.EndTurn()
+		eb := b.EndTurn()
+		if len(ea) != len(eb) {
+			t.Fatalf("iteration %d: events 数が不一致: %d != %d", i, len(ea), len(eb))
+		}
+		for j := range ea {
+			if ea[j].ID != eb[j].ID || ea[j].Message != eb[j].Message || ea[j].Type != eb[j].Type {
+				t.Fatalf("iteration %d event %d: 不一致: %+v vs %+v", i, j, ea[j], eb[j])
+			}
+		}
+	}
+}
+
 func TestEndTurn_NoLines(t *testing.T) {
 	g := NewGame(1907, "hankyu")
 	g.Date = Date{Year: 1910, Month: 6}

@@ -64,16 +64,31 @@ func (g *Game) aiActionOrder() []string {
 //
 // 処理順序:
 //  1. 史実ルート追従（HistoryIgnore 以外）
-//  2. 適応ルート（Phase 8-2 以降、今回は何もしない）
+//  2. 財務（資金調達・返済）
+//  3. 建設（路線敷設）
+//  4. 運用（運賃調整・車両購入）
+//  5. 開発（施設建設）
 func (g *Game) runAI(c *Company, ai *AI) []Event {
-	// 史実ルート追従
+	var events []Event
+
+	// 1. 史実ルート追従
 	if ai.HistoryMode != HistoryIgnore {
 		if evs := g.aiFollowHistory(c, ai); len(evs) > 0 {
 			return evs
 		}
 	}
 
-	// 適応ルート（Phase 8-2 以降）
-	// 今回は何もしない
-	return nil
+	// 2. 財務（資金調達・返済）
+	events = append(events, g.aiFinance(c, ai)...)
+
+	// 3. 建設
+	events = append(events, g.aiBuild(c, ai)...)
+
+	// 4. 運用
+	events = append(events, g.aiOperate(c, ai)...)
+
+	// 5. 開発
+	events = append(events, g.aiDevelop(c, ai)...)
+
+	return events
 }

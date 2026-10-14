@@ -190,6 +190,44 @@ func TestGame_JSONRoundTrip_AIAndHistorical(t *testing.T) {
 	}
 }
 
+func TestRunAI_AdaptiveRoute(t *testing.T) {
+	// 史実ルートなし（HistoryIgnore）でも自律的に路線を敷設する
+	g, c := newBuildGame(t, "hankyu", "kansai", 100_000_000,
+		bigCity("umeda", 34.7, 135.5),
+		bigCity("kobe", 34.7, 135.2))
+	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu"), HistoryMode: HistoryIgnore}
+
+	evs := g.runAI(c, ai)
+
+	if !hasEventType(evs, EventLineOpened) {
+		t.Error("適応ルートで line_opened が生成されなかった")
+	}
+	if len(c.Lines) != 1 {
+		t.Errorf("Lines = %d, want 1", len(c.Lines))
+	}
+}
+
+func TestRunAI_HistoryFirstOnly(t *testing.T) {
+	// 史実ルートが該当するターンは適応ルートを実行しない
+	g, c := newAITestGame(t, "hankyu", 100_000_000, &HistoricalLine{
+		CompanyID: "hankyu", From: "a", To: "b", Gauge: 1067,
+		OpenedYear: 1910, OpenedMonth: 3, DisplayName: "テスト線",
+	})
+	g.InitAIs()
+
+	evs := g.runAI(c, g.AIs["hankyu"])
+
+	if len(evs) != 1 {
+		t.Fatalf("events = %d, want 1（史実のみ）", len(evs))
+	}
+	if evs[0].Type != EventLineOpened {
+		t.Errorf("type = %q, want %q", evs[0].Type, EventLineOpened)
+	}
+	if len(c.Facilities) != 0 {
+		t.Errorf("史実優先なのに開発が走った: %d", len(c.Facilities))
+	}
+}
+
 func TestRunAI_RunsNonPlayer(t *testing.T) {
 	g, c := newAITestGame(t, "hankyu", 100_000_000, &HistoricalLine{
 		CompanyID: "hankyu", From: "a", To: "b", Gauge: 1067,

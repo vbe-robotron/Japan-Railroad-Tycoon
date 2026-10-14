@@ -30,9 +30,10 @@
 - [x] Phase 7-1.5: 20社拡張
 - [x] Phase 8-1: AI基盤 + 史実ルート追従
 - [x] Phase 7-3: 史実初期状態 + 全国データ拡張
+- [x] Phase 8-2: 建設AI + 運用AI
 
 ## 進行中
-- [ ] Phase 8-2: 建設AI + 運用AI
+- [ ] Phase 8-3: M&A AI + 廃線 AI
 
 ## Phase 1-8-2.5 の目標
 

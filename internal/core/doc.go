@@ -61,6 +61,10 @@
 //   - HistoryMode: 史実追従度
 //   - RunAI: 全社の AI 実行
 //   - aiFollowHistory: 史実ルート追従
+//   - aiBuild: 建設 AI（収益ポテンシャルで路線敷設）
+//   - aiOperate: 運用 AI（運賃調整・車両購入）
+//   - aiFinance: 財務 AI（借入・返済）
+//   - aiDevelop: 開発 AI（施設建設）
 //   - HistoricalLine: 史実路線（data から注入）
 //
 // 経済シミュレーション:

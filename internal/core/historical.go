@@ -23,3 +23,35 @@ type HistoricalLine struct {
 func (g *Game) SetHistoricalLines(lines []HistoricalLine) {
 	g.HistoricalLines = lines
 }
+
+// AutoBuildHistoricalLine は史実の既存路線をコストなしで敷設する。
+//
+// ゲーム開始時点で史実の鉄道網を再現するために使う。
+// イベントは生成しない（初期状態）。
+func (g *Game) AutoBuildHistoricalLine(c *Company, h HistoricalLine) {
+	if c == nil {
+		return
+	}
+	from := g.Cities[h.From]
+	to := g.Cities[h.To]
+	if from == nil || to == nil {
+		return
+	}
+	if g.lineExists(h.From, h.To, c.ID) {
+		return
+	}
+
+	lineID := g.IDGen.Next()
+	line := NewLine(lineID, c.ID, h.From, h.To)
+	line.DisplayName = h.DisplayName
+	line.LengthKm = g.DistanceKm(h.From, h.To)
+	line.Gauge = h.Gauge
+	line.Double = h.Double
+	line.Opened = Date{Year: h.OpenedYear, Month: h.OpenedMonth}
+	line.Fare = g.DefaultFare(h.From, h.To)
+	line.TrainsPerDay = 10
+
+	c.AddLine(line)
+	g.recalcCityDemand(from)
+	g.recalcCityDemand(to)
+}

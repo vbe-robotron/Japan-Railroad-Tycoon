@@ -16,8 +16,8 @@ func TestLoad_Vanilla(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(ds.Cities) != 36 {
-		t.Errorf("len(Cities) = %d, want 36", len(ds.Cities))
+	if len(ds.Cities) != 60 {
+		t.Errorf("len(Cities) = %d, want 60", len(ds.Cities))
 	}
 	if len(ds.Companies) != 20 {
 		t.Errorf("len(Companies) = %d, want 20", len(ds.Companies))
@@ -238,14 +238,14 @@ func TestLoad_AllCompanies(t *testing.T) {
 	}
 }
 
-// TestLoad_AllCities は全 36 都市が読み込まれることを確認する。
+// TestLoad_AllCities は全 60 都市が読み込まれることを確認する。
 func TestLoad_AllCities(t *testing.T) {
 	ds, err := Load(vanillaDir)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(ds.Cities) != 36 {
-		t.Fatalf("len(Cities) = %d, want 36", len(ds.Cities))
+	if len(ds.Cities) != 60 {
+		t.Fatalf("len(Cities) = %d, want 60", len(ds.Cities))
 	}
 	for _, id := range []string{"tokyo", "yokohama", "nagoya", "matsuyama"} {
 		if _, ok := findCity(ds, id); !ok {
@@ -254,14 +254,14 @@ func TestLoad_AllCities(t *testing.T) {
 	}
 }
 
-// TestLoad_AllHistoricalLines は全 38 路線が読み込まれることを確認する。
+// TestLoad_AllHistoricalLines は全 60 路線が読み込まれることを確認する。
 func TestLoad_AllHistoricalLines(t *testing.T) {
 	ds, err := Load(vanillaDir)
 	if err != nil {
 		t.Fatalf("Load: %v", err)
 	}
-	if len(ds.HistoricalLines) != 38 {
-		t.Fatalf("len(HistoricalLines) = %d, want 38", len(ds.HistoricalLines))
+	if len(ds.HistoricalLines) != 60 {
+		t.Fatalf("len(HistoricalLines) = %d, want 60", len(ds.HistoricalLines))
 	}
 }
 

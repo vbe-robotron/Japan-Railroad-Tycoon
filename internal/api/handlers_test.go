@@ -513,8 +513,8 @@ func TestCreateGame_WithData(t *testing.T) {
 	if err := json.Unmarshal(ci.Data, &cities); err != nil {
 		t.Fatalf("cities: %v", err)
 	}
-	if len(cities) != 36 {
-		t.Fatalf("len(cities) = %d, want 36", len(cities))
+	if len(cities) != 60 {
+		t.Fatalf("len(cities) = %d, want 60", len(cities))
 	}
 
 	var player *core.Company

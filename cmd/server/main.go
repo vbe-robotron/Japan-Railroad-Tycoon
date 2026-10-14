@@ -27,7 +27,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("データの読み込みに失敗しました: %v", err)
 	}
-	log.Printf("データを読み込みました: %d 都市 / %d 社", len(ds.Cities), len(ds.Companies))
+	log.Printf("データを読み込みました: %d 都市 / %d 社 / %d 路線",
+		len(ds.Cities), len(ds.Companies), len(ds.HistoricalLines))
 
 	h := hub.New(st, ds)
 	router := api.NewRouter(h, st)

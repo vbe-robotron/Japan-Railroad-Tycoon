@@ -53,8 +53,8 @@
     },
     {
       "company_id": "keihan",
-      "from": "umeda",
-      "to": "kyoto",
+      "from": "tenmabashi",
+      "to": "sanjo",
       "gauge": 1435,
       "double": false,
       "opened_year": 1910,
@@ -72,8 +72,38 @@
       "display_name": "南海本線"
     },
     {
+      "company_id": "nankai",
+      "from": "osaka_namba",
+      "to": "kishiwada",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1897,
+      "opened_month": 10,
+      "display_name": "南海本線"
+    },
+    {
+      "company_id": "nankai",
+      "from": "kishiwada",
+      "to": "wakayama",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1903,
+      "opened_month": 3,
+      "display_name": "南海本線"
+    },
+    {
       "company_id": "kintetsu",
       "from": "osaka_namba",
+      "to": "yamato_saidaiji",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1914,
+      "opened_month": 4,
+      "display_name": "奈良線"
+    },
+    {
+      "company_id": "kintetsu",
+      "from": "yamato_saidaiji",
       "to": "nara",
       "gauge": 1435,
       "double": false,
@@ -84,7 +114,7 @@
     {
       "company_id": "kintetsu",
       "from": "kyoto",
-      "to": "nara",
+      "to": "yamato_saidaiji",
       "gauge": 1435,
       "double": false,
       "opened_year": 1928,
@@ -92,13 +122,43 @@
       "display_name": "京都線"
     },
     {
+      "company_id": "kintetsu",
+      "from": "osaka_namba",
+      "to": "tsu",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1930,
+      "opened_month": 10,
+      "display_name": "大阪線"
+    },
+    {
+      "company_id": "kintetsu",
+      "from": "tsu",
+      "to": "ise",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1930,
+      "opened_month": 10,
+      "display_name": "山田線"
+    },
+    {
       "company_id": "sanyo",
       "from": "kobe",
-      "to": "sakai",
+      "to": "akashi",
       "gauge": 1435,
       "double": false,
       "opened_year": 1910,
       "opened_month": 3,
+      "display_name": "本線"
+    },
+    {
+      "company_id": "sanyo",
+      "from": "akashi",
+      "to": "himeji",
+      "gauge": 1435,
+      "double": false,
+      "opened_year": 1923,
+      "opened_month": 8,
       "display_name": "本線"
     },
     {
@@ -122,6 +182,26 @@
       "display_name": "東海道本線"
     },
     {
+      "company_id": "jnr",
+      "from": "umeda",
+      "to": "kobe",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1874,
+      "opened_month": 5,
+      "display_name": "東海道本線"
+    },
+    {
+      "company_id": "jnr",
+      "from": "nagahama",
+      "to": "kyoto",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1889,
+      "opened_month": 7,
+      "display_name": "東海道本線"
+    },
+    {
       "company_id": "tobu",
       "from": "ueno",
       "to": "funabashi",
@@ -142,6 +222,16 @@
       "display_name": "東武野田線"
     },
     {
+      "company_id": "tobu",
+      "from": "asakusa",
+      "to": "kashiwa",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1911,
+      "opened_month": 5,
+      "display_name": "東武本線"
+    },
+    {
       "company_id": "seibu",
       "from": "ikebukuro",
       "to": "hachioji",
@@ -152,13 +242,43 @@
       "display_name": "池袋線"
     },
     {
+      "company_id": "seibu",
+      "from": "ikebukuro",
+      "to": "tokorozawa",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1915,
+      "opened_month": 4,
+      "display_name": "池袋線"
+    },
+    {
+      "company_id": "seibu",
+      "from": "tokorozawa",
+      "to": "hinode",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1925,
+      "opened_month": 4,
+      "display_name": "池袋線"
+    },
+    {
       "company_id": "keisei",
       "from": "ueno",
       "to": "narita",
       "gauge": 1067,
       "double": false,
       "opened_year": 1930,
-      "opened_month": 11,
+      "opened_month": 4,
+      "display_name": "京成本線"
+    },
+    {
+      "company_id": "keisei",
+      "from": "aoto",
+      "to": "narita",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1930,
+      "opened_month": 4,
       "display_name": "京成本線"
     },
     {
@@ -232,6 +352,16 @@
       "display_name": "本線"
     },
     {
+      "company_id": "sotetsu",
+      "from": "yokohama",
+      "to": "ebina",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1942,
+      "opened_month": 4,
+      "display_name": "本線"
+    },
+    {
       "company_id": "jnr",
       "from": "tokyo",
       "to": "yokohama",
@@ -272,6 +402,16 @@
       "display_name": "東北本線"
     },
     {
+      "company_id": "jnr",
+      "from": "tokyo",
+      "to": "omiya",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1883,
+      "opened_month": 7,
+      "display_name": "東北本線"
+    },
+    {
       "company_id": "meitetsu",
       "from": "nagoya",
       "to": "gifu",
@@ -288,7 +428,7 @@
       "gauge": 1067,
       "double": false,
       "opened_year": 1927,
-      "opened_month": 4,
+      "opened_month": 6,
       "display_name": "名古屋本線"
     },
     {
@@ -300,6 +440,26 @@
       "opened_year": 1898,
       "opened_month": 5,
       "display_name": "岡崎線"
+    },
+    {
+      "company_id": "meitetsu",
+      "from": "nagoya",
+      "to": "kanayama",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1944,
+      "opened_month": 10,
+      "display_name": "本線"
+    },
+    {
+      "company_id": "meitetsu",
+      "from": "kariya",
+      "to": "toyota",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1927,
+      "opened_month": 6,
+      "display_name": "豊田線"
     },
     {
       "company_id": "enshu",
@@ -352,6 +512,26 @@
       "display_name": "東海道本線"
     },
     {
+      "company_id": "jnr",
+      "from": "shizuoka",
+      "to": "shimizu",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1889,
+      "opened_month": 4,
+      "display_name": "東海道本線"
+    },
+    {
+      "company_id": "jnr",
+      "from": "toyohashi",
+      "to": "hamamatsu",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1888,
+      "opened_month": 9,
+      "display_name": "東海道本線"
+    },
+    {
       "company_id": "iyotetsu",
       "from": "matsuyama",
       "to": "imabari",
@@ -374,7 +554,47 @@
     {
       "company_id": "iyotetsu",
       "from": "matsuyama",
+      "to": "mitsu",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1888,
+      "opened_month": 10,
+      "display_name": "高浜線"
+    },
+    {
+      "company_id": "iyotetsu",
+      "from": "matsuyama",
+      "to": "saijo",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1889,
+      "opened_month": 5,
+      "display_name": "予讃線"
+    },
+    {
+      "company_id": "iyotetsu",
+      "from": "saijo",
+      "to": "komatsu",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1889,
+      "opened_month": 5,
+      "display_name": "予讃線"
+    },
+    {
+      "company_id": "iyotetsu",
+      "from": "mitsu",
       "to": "imabari",
+      "gauge": 1067,
+      "double": false,
+      "opened_year": 1893,
+      "opened_month": 5,
+      "display_name": "高浜線"
+    },
+    {
+      "company_id": "iyotetsu",
+      "from": "imabari",
+      "to": "niihama",
       "gauge": 1067,
       "double": false,
       "opened_year": 1893,

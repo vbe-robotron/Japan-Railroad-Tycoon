@@ -29,6 +29,7 @@
 - [x] Phase 7-2: 史実路線データ
 - [x] Phase 7-1.5: 20社拡張
 - [x] Phase 8-1: AI基盤 + 史実ルート追従
+- [x] Phase 7-3: 史実初期状態 + 全国データ拡張
 
 ## 進行中
 - [ ] Phase 8-2: 建設AI + 運用AI
@@ -396,3 +397,38 @@
     （投入 6 件）、`handlers_test.go` に `TestCreateGame_WithData` /
     `TestBuildLine_AfterCreate` を追加。カバレッジ `internal/data` 98.6%、
     `-race` 全通過。core は無変更。
+- Phase 7-3 の史実初期状態 + 全国データ拡張:
+  - `core/historical.go` に `Game.AutoBuildHistoricalLine` を追加。史実の
+    既存路線をコストなし・イベントなしで敷設する（AI 追従の
+    `aiFollowHistory` とは別に、ゲーム開始時点の鉄道網を再現する用途）。
+    `lineExists` で重複を除外し、`recalcCityDemand` で需要を再計算する。
+  - `data/apply.go` の `ApplyToGame` 末尾で、開始年月以前の史実路線を
+    非プレイヤー会社へ自動敷設する。基準日は `Game.Date` が未設定なら
+    `defaultStartDate`（1907-10）。プレイヤー会社は自分で敷設するため
+    対象外、開業年が基準日より後の路線は AI（`aiFollowHistory`）に任せる。
+    `createGame` は `ApplyToGame` の後に開始日を設定するため、投入時は
+    既定の 1907-10 が使われる。
+  - 都市データを 36 → **60** に拡張（関西 +10 / 関東 +7 / 中部 +4 /
+    四国 +3）。史実路線の区間都市（天満橋・三条・明石・姫路・和歌山・
+    岸和田・大和西大寺・伊勢・津・長浜・大宮・柏・所沢・海老名・
+    日の出町・青砥・浅草・金山・刈谷・豊田・清水・三津・小松・西条）を
+    実座標付きで追加。
+  - 史実路線を 38 → **60** に拡張。京阪「梅田〜京都」→「天満橋〜三条」、
+    山陽「神戸〜堺」→「神戸〜明石」「明石〜姫路」に修正し、関西・関東・
+    中部・四国の路線を追加した（会社数は 20 のまま）。
+  - 動作確認（vanilla・player=hankyu）:
+    - 開始時点（1907-10）で国鉄 14 路線（1872〜1889 開業分）を自動保有。
+      阪急（プレイヤー）は 0 路線のまま。
+    - 他 AI も開始時点の史実線を保有（阪神1・南海3・京浜1・伊予鉄7・
+      名鉄1）。
+    - `turn 120`（1917-10）で AI が 1910 年以降の路線を敷設（京阪1・
+      山陽1・近鉄1・東武2・西武1・名鉄2）。阪急と 1926 年開業の東急は
+      0 のまま（プレイヤー／未来）。
+  - テスト: カウント更新（`loader_test` 60 都市・60 路線、`apply_test`
+    `TestApplyToGame_Vanilla` 60 都市、`historical_test` kintetsu 5 路線、
+    `handlers_test` 60 都市）。`apply_test.go` に
+    `TestApplyToGame_AutoBuildHistoricalLines` / `_SkipsPlayerLines` /
+    `_SkipsFutureLines`、`core/historical_test.go` に
+    `AutoBuildHistoricalLine` の 5 件を追加。カバレッジ `internal/core`
+    98.2% / `internal/data` 98.5%、`-race` 全通過。core の import は
+    従来どおり純粋。

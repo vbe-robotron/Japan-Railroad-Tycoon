@@ -13,8 +13,8 @@ func TestHistoricalLines_ByCompany(t *testing.T) {
 	if len(byCompany["hankyu"]) != 4 {
 		t.Errorf("hankyu = %d 路線, want 4", len(byCompany["hankyu"]))
 	}
-	if len(byCompany["kintetsu"]) != 2 {
-		t.Errorf("kintetsu = %d 路線, want 2", len(byCompany["kintetsu"]))
+	if len(byCompany["kintetsu"]) != 5 {
+		t.Errorf("kintetsu = %d 路線, want 5", len(byCompany["kintetsu"]))
 	}
 	if len(byCompany["hanshin"]) != 1 {
 		t.Errorf("hanshin = %d 路線, want 1", len(byCompany["hanshin"]))

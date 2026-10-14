@@ -98,6 +98,8 @@ func printBanner(g *core.Game) {
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
     fmt.Println("  buy-shares <company_id> <count>  他社株取得（5%プレミアム・50%超で子会社化）")
+    fmt.Println("  tob <company_id> [--premium P] [--ratio R]  TOB（即時成立・51%以上で子会社化）")
+    fmt.Println("  merge <company_id> <new_name> [--ratio R]   合併（路線・施設引継ぎ）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")
@@ -171,6 +173,18 @@ func handleCommand(g *core.Game, line string) bool {
             return true
         }
         cmdBuyShares(g, parts[1], count)
+    case "tob":
+        if len(parts) < 2 {
+            fmt.Println("使い方: tob <company_id> [--premium 1.1] [--ratio 0.51]")
+            return true
+        }
+        cmdTOB(g, parts)
+    case "merge":
+        if len(parts) < 3 {
+            fmt.Println("使い方: merge <company_id> <new_name> [--ratio 0.5]")
+            return true
+        }
+        cmdMerge(g, parts)
     case "et":
         cmdEndTurn(g, 1)
     case "turn":
@@ -368,6 +382,59 @@ func cmdBuyShares(g *core.Game, targetID string, count int) {
     printEvents(events)
 }
 
+// cmdTOB は TOB（公開買付け）アクションを適用する。
+//
+// --premium でプレミアム（1.05〜1.5、既定値 1.1）、--ratio で目標比率
+// （0.51〜0.67、既定値 0.51）を指定する。
+func cmdTOB(g *core.Game, parts []string) {
+    targetID := parts[1]
+    premium := 1.1
+    ratio := 0.51
+    for i := 2; i < len(parts); i++ {
+        switch parts[i] {
+        case "--premium":
+            if i+1 < len(parts) {
+                premium, _ = strconv.ParseFloat(parts[i+1], 64)
+                i++
+            }
+        case "--ratio":
+            if i+1 < len(parts) {
+                ratio, _ = strconv.ParseFloat(parts[i+1], 64)
+                i++
+            }
+        }
+    }
+    a := &core.TenderOfferAction{TargetCompanyID: targetID, Premium: premium, TargetRatio: ratio}
+    events, err := a.Apply(g)
+    if err != nil {
+        fmt.Printf("✗ %v\n", err)
+        return
+    }
+    printEvents(events)
+}
+
+// cmdMerge は合併アクションを適用する。
+//
+// --ratio で合併比率（0.0〜1.0、既定値 0.5）を指定する。
+func cmdMerge(g *core.Game, parts []string) {
+    targetID := parts[1]
+    name := parts[2]
+    ratio := 0.5
+    for i := 3; i < len(parts); i++ {
+        if parts[i] == "--ratio" && i+1 < len(parts) {
+            ratio, _ = strconv.ParseFloat(parts[i+1], 64)
+            i++
+        }
+    }
+    a := &core.MergeAction{TargetCompanyID: targetID, Ratio: ratio, Name: name}
+    events, err := a.Apply(g)
+    if err != nil {
+        fmt.Printf("✗ %v\n", err)
+        return
+    }
+    printEvents(events)
+}
+
 // cmdAbandonLine は廃線アクションを適用する。
 //
 // line_id は完全な ID か、lines 表示の短縮 ID（先頭 8 文字）を受け付ける。
@@ -418,6 +485,8 @@ func cmdHelp() {
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
     fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
     fmt.Println("  buy-shares <company_id> <count>  他社株取得（5%プレミアム・50%超で子会社化）")
+    fmt.Println("  tob <company_id> [--premium P] [--ratio R]  TOB（即時成立・51%以上で子会社化）")
+    fmt.Println("  merge <company_id> <new_name> [--ratio R]   合併（路線・施設引継ぎ）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")

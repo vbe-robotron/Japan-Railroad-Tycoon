@@ -19,12 +19,13 @@
 - [x] Phase 1-8-2.5: 開発効果のバランス調整
 - [x] Phase 1-8-3: AbandonLineAction（廃線4ゲート、用地売却益・評判低下）
 - [x] Phase 1-8-4: BuySharesAction（株取得・子会社化）
+- [x] Phase 1-8-5: TenderOffer/MergeAction
 
 ## 進行中
-- [ ] Phase 1-8-5: TenderOffer/MergeAction
+- [ ] Phase 2: SQL永続化
 
 ## 次
-- [ ] Phase 1-8-5: TenderOffer/MergeAction（TOB・合併）
+- [ ] Phase 2: SQL永続化
 
 ## Phase 1-8-2.5 の目標
 

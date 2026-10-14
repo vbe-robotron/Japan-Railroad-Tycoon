@@ -25,6 +25,7 @@ type Company struct {
 	ParentID    string         `json:"parent_id,omitempty"`
 	Reputation  int            `json:"reputation"` // 0-100
 	CreditLine  int64          `json:"credit_line"`
+	Dissolved   *Date          `json:"dissolved,omitempty"` // 解散日（合併などで消滅した場合）
 }
 
 // NewCompany は会社を生成する。

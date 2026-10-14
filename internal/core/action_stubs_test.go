@@ -5,17 +5,18 @@ import "testing"
 // TestActionStubs_ValidateApply はスタブとして残っているアクションの
 // Validate/Apply が nil を返すことを検証する。
 //
-// Phase 1-8-4 時点では EndTurnAction・BuildLineAction・SetFareAction・
-// BuildFacilityAction・AbandonLineAction・BuySharesAction が本実装済みのため
-// 対象外とし、残り 19 種を検証する。
+// Phase 1-8-5 時点では EndTurnAction・BuildLineAction・SetFareAction・
+// BuildFacilityAction・AbandonLineAction・BuySharesAction・TenderOfferAction・
+// MergeAction が本実装済みのため対象外とし、残り 18 種を検証する。
 // 以降で本実装に置き換わるたびに、このテストも更新する。
 func TestActionStubs_ValidateApply(t *testing.T) {
 	g := NewGame(1907, "hankyu")
-	// スタブとして残っている19種のみを対象
+	// スタブとして残っている18種のみを対象
 	for _, a := range allActions() {
 		switch a.(type) {
 		case *EndTurnAction, *BuildLineAction, *SetFareAction,
-			*BuildFacilityAction, *AbandonLineAction, *BuySharesAction:
+			*BuildFacilityAction, *AbandonLineAction, *BuySharesAction,
+			*TenderOfferAction, *MergeAction:
 			continue // 本実装済み
 		}
 		if err := a.Validate(g); err != nil {

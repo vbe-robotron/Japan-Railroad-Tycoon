@@ -17,12 +17,13 @@
 - [x] Phase 1-8-1: SetFareAction（運賃変更、TDD 適用）
 - [x] Phase 1-8-2: BuildFacilityAction（施設建設・開発度上昇・不動産収入）
 - [x] Phase 1-8-2.5: 開発効果のバランス調整
+- [x] Phase 1-8-3: AbandonLineAction（廃線4ゲート、用地売却益・評判低下）
 
 ## 進行中
-- [ ] Phase 1-8-3: AbandonLineAction
+- [ ] Phase 1-8-4: BuySharesAction
 
 ## 次
-- [ ] Phase 1-8-3: AbandonLineAction（廃線判断）
+- [ ] Phase 1-8-4: BuySharesAction（M&A 入門）
 
 ## Phase 1-8-2.5 の目標
 
@@ -237,3 +238,12 @@
     （ヘルパー `setupPhase1825World` / `mustBuildLine` / `developLineCities`）。
   - カバレッジ: `go test -cover ./internal/core/...` で 99.4%。core の import は
     従来どおり純粋（net/http, database/sql, time, os を含まない）。
+- Phase 1-8-3 の廃線:
+  - `action_abandon_line.go` に本実装。4ゲートのうち経済（連続赤字 ≥ 24ヶ月、
+    または累積損失 ≥ 路線価値の 30%）と政治（両端都市の PoliticalPressure ≤ 0.7）
+    を実装。代替路線・物理状態は簡略化。
+  - 効果: 路線削除、用地売却益（地価 × 距離 × 係数）、政治圧力 +0.2（上限 1.0）、
+    評判 -5、需要再計算、`line_abandoned` イベント。
+  - `action_stubs.go` から AbandonLineAction を削除（残りスタブ 20 種）。
+  - `cmd/play` に `abandon-line <id> [--reason R]` を追加。
+  - カバレッジ: `action_abandon_line.go` の Validate 95.5% / Apply 93.3%、全体 99.2%。

@@ -1,9 +1,10 @@
 package core
 
-// このファイルは Phase 1-8-2 時点での一時スタブ。
-// 本実装済みのアクション（EndTurnAction, BuildLineAction,
-// SetFareAction, BuildFacilityAction）はここから削除済み。
-// Phase 1-8-3 以降、各アクションの本実装が完了したら、
+// このファイルは Phase 1-8-3 時点での一時スタブ。
+// 本実装済み: EndTurnAction, BuildLineAction, SetFareAction,
+//             BuildFacilityAction, AbandonLineAction
+// 本実装済みのアクションはここから削除済み。
+// 以降、各アクションの本実装が完了したら、
 // 対応するメソッドをこのファイルから削除する。
 //
 // Validate は状態を変更せず実行可否を検証し、Apply は状態を変更して
@@ -148,14 +149,8 @@ func (a *AcceptSubsidyAction) Validate(g *Game) error { return nil }
 func (a *AcceptSubsidyAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // ────────────────────────────────────────────
-// 廃線系（2種）
+// 廃線系（1種）
 // ────────────────────────────────────────────
-
-// Validate は廃線の可否を検証する（スタブ）。
-func (a *AbandonLineAction) Validate(g *Game) error { return nil }
-
-// Apply は路線を廃止する（スタブ）。
-func (a *AbandonLineAction) Apply(g *Game) ([]Event, error) { return nil, nil }
 
 // Validate は廃線復活の可否を検証する（スタブ）。
 func (a *RestoreAbandonedLineAction) Validate(g *Game) error { return nil }

@@ -96,6 +96,7 @@ func printBanner(g *core.Game) {
     fmt.Println("  line <id>           路線詳細")
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
+    fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")
@@ -152,6 +153,12 @@ func handleCommand(g *core.Game, line string) bool {
             return true
         }
         cmdBuildFacility(g, parts)
+    case "abandon-line":
+        if len(parts) < 2 {
+            fmt.Println("使い方: abandon-line <line_id> [--reason economic]")
+            return true
+        }
+        cmdAbandonLine(g, parts)
     case "et":
         cmdEndTurn(g, 1)
     case "turn":
@@ -338,6 +345,35 @@ func cmdBuildFacility(g *core.Game, parts []string) {
     printEvents(events)
 }
 
+// cmdAbandonLine は廃線アクションを適用する。
+//
+// line_id は完全な ID か、lines 表示の短縮 ID（先頭 8 文字）を受け付ける。
+// --reason で理由（economic | disaster | political | wartime）を指定する。
+func cmdAbandonLine(g *core.Game, parts []string) {
+    lineID := parts[1]
+    reason := "economic"
+    for i := 2; i < len(parts); i++ {
+        if parts[i] == "--reason" && i+1 < len(parts) {
+            reason = parts[i+1]
+            i++
+        }
+    }
+    resolvedID := lineID
+    for _, l := range g.PlayerCompany().Lines {
+        if shortID(l.ID) == lineID || l.ID == lineID {
+            resolvedID = l.ID
+            break
+        }
+    }
+    a := &core.AbandonLineAction{LineID: resolvedID, Reason: reason}
+    events, err := a.Apply(g)
+    if err != nil {
+        fmt.Printf("✗ %v\n", err)
+        return
+    }
+    printEvents(events)
+}
+
 func cmdEndTurn(g *core.Game, n int) {
     for i := 0; i < n; i++ {
         events := g.EndTurn()
@@ -357,6 +393,7 @@ func cmdHelp() {
     fmt.Println("  line <id>           路線詳細")
     fmt.Println("  set-fare <id> <円>  運賃変更（±50%以内）")
     fmt.Println("  build-facility <city> <kind> [--scale N]  施設建設（開発度上昇）")
+    fmt.Println("  abandon-line <id> [--reason R]  廃線（4ゲート）")
     fmt.Println("  et                  1ターン進む")
     fmt.Println("  turn <N>            Nターン進む")
     fmt.Println("  help                ヘルプ")

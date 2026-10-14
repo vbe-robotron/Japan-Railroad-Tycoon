@@ -21,12 +21,13 @@
 - [x] Phase 1-8-4: BuySharesAction（株取得・子会社化）
 - [x] Phase 1-8-5: TenderOffer/MergeAction
 - [x] Phase 2: SQL永続化
+- [x] Phase 3: Hub/Session
 
 ## 進行中
-- [ ] Phase 3: Hub/Session
+- [ ] Phase 4: HTTP API
 
 ## 次
-- [ ] Phase 3: Hub/Session
+- [ ] Phase 4: HTTP API
 
 ## Phase 1-8-2.5 の目標
 
@@ -289,3 +290,14 @@
   - テスト: RoundTrip（全フィールド）・CorruptJSON・ScanError・FK エラー・
     空 events・closed DB など 24 件。カバレッジ 91.3%。
   - core は無変更。
+- Phase 3 の Hub/Session:
+  - `internal/hub` に `Hub` / `Session` / `Subscriber` を実装。
+    Hub は `map[id]*Session` を RWMutex で保護し、store と接続する。
+  - `Session` はゲームロック `mu`（Lock/Unlock で公開）と購読者マップを
+    別ミューテックス `subsMu` で保護。ゲームをロック中でも Broadcast が
+    デッドロックしない。
+  - `GetOrLoad` はメモリ優先、未ロード時は store からロードし二重チェックで登録。
+  - `Subscriber.Send` は非ブロッキング（バッファ 16、溢れで Close）。
+    `Close` は `sync.Once` で 1 回だけ。`Broadcast` は購読者をスナップショット。
+  - テスト: fakeStore によるエラー注入を含む 17 件。カバレッジ 98.9%、
+    `-race` 全通過。core / store は無変更。

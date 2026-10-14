@@ -70,6 +70,10 @@ func (g *Game) aiActionOrder() []string {
 //  5. 開発（施設建設）
 //  6. M&A（株取得・TOB・合併）
 //  7. 廃線（赤字路線の廃止）
+//
+// Phase 9 で 2〜5 の能動アクションを 1 ターン最大 maxActions に制限する。
+// M&A と廃線は元々 1 ターン 1 件の希少行動のため制限の対象外とし、
+// 資金・確率ゲートでのみ抑制する。
 func (g *Game) runAI(c *Company, ai *AI) []Event {
 	var events []Event
 
@@ -80,22 +84,46 @@ func (g *Game) runAI(c *Company, ai *AI) []Event {
 		}
 	}
 
+	// 能動アクションの上限（1 ターン最大 3 アクション）
+	maxActions := 3
+	count := 0
+
 	// 2. 財務（資金調達・返済）
-	events = append(events, g.aiFinance(c, ai)...)
+	if count < maxActions {
+		if evs := g.aiFinance(c, ai); len(evs) > 0 {
+			events = append(events, evs...)
+			count++
+		}
+	}
 
 	// 3. 建設
-	events = append(events, g.aiBuild(c, ai)...)
+	if count < maxActions {
+		if evs := g.aiBuild(c, ai); len(evs) > 0 {
+			events = append(events, evs...)
+			count++
+		}
+	}
 
 	// 4. 運用
-	events = append(events, g.aiOperate(c, ai)...)
+	if count < maxActions {
+		if evs := g.aiOperate(c, ai); len(evs) > 0 {
+			events = append(events, evs...)
+			count++
+		}
+	}
 
 	// 5. 開発
-	events = append(events, g.aiDevelop(c, ai)...)
+	if count < maxActions {
+		if evs := g.aiDevelop(c, ai); len(evs) > 0 {
+			events = append(events, evs...)
+			count++
+		}
+	}
 
-	// 6. M&A
+	// 6. M&A（希少行動のため上限対象外）
 	events = append(events, g.aiMA(c, ai)...)
 
-	// 7. 廃線
+	// 7. 廃線（希少行動のため上限対象外）
 	events = append(events, g.aiAbandon(c, ai)...)
 
 	return events

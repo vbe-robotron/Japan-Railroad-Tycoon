@@ -11,13 +11,16 @@ import "sort"
 // 買収対象とする。
 
 // M&A AI のパラメータ。
+//
+// Phase 9 で M&A 頻度を抑制した。史実の関西私鉄は 100 年以上独立を維持して
+// おり、買収は攻撃的で資金に余裕のある会社が低確率で行うものに限定する。
 const (
 	// MAMinAggression は M&A を開始する最低攻撃性。
-	MAMinAggression = 0.5
-	// MAMinCash は M&A を開始する最低資金（5,000万円）。
-	MAMinCash = 50_000_000
+	MAMinAggression = 0.75
+	// MAMinCash は M&A を開始する最低資金（2億円）。
+	MAMinCash = 200_000_000
 	// MATargetMinScore は買収対象とする最低スコア。
-	MATargetMinScore = 50.0
+	MATargetMinScore = 80.0
 	// MAMaxAcquireRatio は 1 ターンに取得する最大議決権比率（20%）。
 	MAMaxAcquireRatio = 1.0 / 5.0
 	// MATOBThreshold は TOB に切り替える保有比率。
@@ -30,13 +33,21 @@ const (
 	MAMergeRatio = 0.5
 	// PlayerTakeoverAggression はプレイヤーを買収対象にする最低攻撃性。
 	PlayerTakeoverAggression = 0.9
+	// MAMergeProbability は過半数保有後に合併する確率（統合準備期間）。
+	MAMergeProbability = 0.2
+	// MAProbabilityFactor は確率判定の係数（Aggression × 係数 が実行確率）。
+	MAProbabilityFactor = 0.1
 )
 
 // aiMA は AI が他社を買収・合併する。
 //
 // 処理順:
-//  1. 既に 50% 超を保有する対象は合併
+//  0. 攻撃性・資金のゲートと確率判定
+//  1. 既に 50% 超を保有する対象は（20% で）合併
 //  2. それ以外は株取得（30% 超なら TOB）
+//
+// 確率判定は Aggression × MAProbabilityFactor（0.9 で 9%/ターン）。
+// rng を使うため決定論は seed に依存する。
 func (g *Game) aiMA(c *Company, ai *AI) []Event {
 	// 攻撃性が低いと買収しない
 	if ai.Personality.Aggression < MAMinAggression {
@@ -44,6 +55,11 @@ func (g *Game) aiMA(c *Company, ai *AI) []Event {
 	}
 	// 資金余裕チェック
 	if c.Cash < MAMinCash {
+		return nil
+	}
+	// 確率判定（Aggression が高いほど実行しやすい）
+	g.EnsureRng()
+	if g.rng.Float64() > ai.Personality.Aggression*MAProbabilityFactor {
 		return nil
 	}
 
@@ -54,9 +70,12 @@ func (g *Game) aiMA(c *Company, ai *AI) []Event {
 
 	holdingPct := g.holdingPct(c, target)
 
-	// 既に 50% 超保有なら合併を試みる
+	// 既に 50% 超保有なら合併を試みる（統合準備期間として 20% のみ）
 	if holdingPct > 0.5 {
-		return g.aiMerge(c, target)
+		if g.rng.Float64() < MAMergeProbability {
+			return g.aiMerge(c, target)
+		}
+		return nil
 	}
 
 	count := g.takeoverShareCount(c, target, ai)
@@ -119,6 +138,14 @@ func (g *Game) takeoverScore(c, t *Company, ai *AI) float64 {
 		score += 100.0 - float64(marketCap)/1_000_000.0
 	}
 
+	// 既存路線を持つ会社は買収が困難（路線数が多いほど統合コストが高い）
+	score -= float64(len(t.Lines)) * 3.0
+
+	// 既に子会社を持つ会社は対象外に近い
+	if g.hasSubsidiaries(t) {
+		score -= 30.0
+	}
+
 	// 路線が隣接
 	if g.adjacentToCompany(c, t) {
 		score += 30
@@ -138,6 +165,18 @@ func (g *Game) takeoverScore(c, t *Company, ai *AI) float64 {
 	}
 
 	return score
+}
+
+// hasSubsidiaries は会社 t が子会社を持つか（他社が t を親としているか）を返す。
+//
+// 買収対象の保護に用いる。子会社を抱える会社は統合が難しいため減点する。
+func (g *Game) hasSubsidiaries(t *Company) bool {
+	for _, c := range g.Companies {
+		if c != t && c.ParentID == t.ID {
+			return true
+		}
+	}
+	return false
 }
 
 // adjacentToCompany は路線が隣接しているかを返す。

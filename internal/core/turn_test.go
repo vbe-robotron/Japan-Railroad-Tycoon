@@ -415,6 +415,10 @@ func newMAGame(seed int64) *Game {
 			ai.HistoryMode = HistoryIgnore
 		}
 	}
+	// 阪神は赤字路線を廃止できるよう保守性を下げる（Phase 9 のゲート 0.5 対策）
+	if ai := g.AIs["hanshin"]; ai != nil {
+		ai.Personality.Conservatism = 0.3
+	}
 	return g
 }
 
@@ -471,5 +475,218 @@ func TestEndTurn_WithMA_Deterministic(t *testing.T) {
 				t.Fatalf("iteration %d event %d: 不一致: %+v vs %+v", i, j, ea[j], eb[j])
 			}
 		}
+	}
+}
+
+// balanceCompany はバランス検証用の会社定義。
+type balanceCompany struct {
+	id     string
+	region string
+	home   string
+	to     string
+	cash   int64
+}
+
+// newBalanceGame は Phase 9 のバランス検証用に 20 社の世界を構築する。
+//
+// 史実の関西私鉄が長期独立を維持したことを再現できるか検証するため、
+// 20 社・24 都市を用意し、各社に 1 本の路線と現実的な資金を与える。
+// 高攻撃性かつ資金余裕のある会社（tokyu / kintetsu）のみが M&A を行う。
+func newBalanceGame(seed int64) (*Game, *Company) {
+	g := NewGame(seed, "hankyu")
+	g.Date = Date{Year: 1910, Month: 1}
+
+	cities := []struct {
+		id   string
+		pop  int
+		land int
+		lat  float64
+		lon  float64
+	}{
+		{"umeda", 500000, 80, 34.7055, 135.4983},
+		{"kobe", 400000, 75, 34.6901, 135.1955},
+		{"kyoto", 350000, 70, 34.9858, 135.7588},
+		{"nara", 150000, 40, 34.6851, 135.8048},
+		{"otsu", 100000, 35, 35.0045, 135.8686},
+		{"himeji", 120000, 40, 34.8151, 134.6853},
+		{"tokyo", 800000, 90, 35.6812, 139.7671},
+		{"yokohama", 500000, 80, 35.4437, 139.6380},
+		{"oomiya", 150000, 50, 35.9064, 139.6238},
+		{"chiba", 120000, 45, 35.6074, 140.1065},
+		{"tachikawa", 100000, 40, 35.6979, 139.4136},
+		{"hachioji", 80000, 35, 35.6663, 139.3158},
+		{"nagoya", 600000, 80, 35.1815, 136.9066},
+		{"gifu", 120000, 40, 35.4232, 136.7605},
+		{"shizuoka", 200000, 50, 34.9756, 138.3828},
+		{"hamamatsu", 150000, 45, 34.7108, 137.7261},
+		{"toyota", 100000, 40, 35.0827, 137.1563},
+		{"kanazawa", 120000, 40, 36.5613, 136.6562},
+		{"matsuyama", 150000, 40, 33.8392, 132.7657},
+		{"takamatsu", 120000, 40, 34.3428, 134.0466},
+		{"kochi", 100000, 35, 33.5597, 133.5311},
+		{"tokushima", 90000, 35, 34.0703, 134.5548},
+		{"imabari", 60000, 25, 34.0661, 133.0006},
+		{"niihama", 50000, 25, 33.9603, 133.2834},
+	}
+	for _, c := range cities {
+		g.AddCity(&City{
+			ID: c.id, Name: c.id, Population: c.pop, LandValue: c.land,
+			Lat: c.lat, Lon: c.lon,
+		})
+	}
+
+	companies := []balanceCompany{
+		{"hankyu", "kansai", "umeda", "kobe", 100_000_000},
+		{"hanshin", "kansai", "kobe", "otsu", 80_000_000},
+		{"keihan", "kansai", "kyoto", "nara", 60_000_000},
+		{"nankai", "kansai", "nara", "himeji", 90_000_000},
+		{"kintetsu", "kansai", "otsu", "kyoto", 1_500_000_000},
+		{"sanyo", "kansai", "himeji", "kobe", 40_000_000},
+		{"jnr", "kansai", "umeda", "otsu", 500_000_000},
+		{"tobu", "kanto", "oomiya", "tokyo", 70_000_000},
+		{"seibu", "kanto", "tachikawa", "yokohama", 60_000_000},
+		{"keisei", "kanto", "chiba", "tokyo", 50_000_000},
+		{"keio", "kanto", "hachioji", "oomiya", 40_000_000},
+		{"odakyu", "kanto", "yokohama", "chiba", 60_000_000},
+		{"tokyu", "kanto", "tokyo", "yokohama", 2_500_000_000},
+		{"keikyu", "kanto", "yokohama", "tachikawa", 50_000_000},
+		{"tokyo_metro", "kanto", "tokyo", "hachioji", 80_000_000},
+		{"sotetsu", "kanto", "yokohama", "oomiya", 30_000_000},
+		{"meitetsu", "chubu", "nagoya", "gifu", 120_000_000},
+		{"enshu", "chubu", "hamamatsu", "shizuoka", 40_000_000},
+		{"shizutetsu", "chubu", "shizuoka", "toyota", 40_000_000},
+		{"iyotetsu", "shikoku", "matsuyama", "takamatsu", 30_000_000},
+	}
+
+	for _, bc := range companies {
+		c := NewCompany(bc.id, bc.id, bc.id)
+		c.Cash = bc.cash
+		c.TotalShares = 10000
+		c.StockPrice = 1000
+		c.Region = bc.region
+		switch bc.id {
+		case "hankyu":
+			c.IsPlayer = true
+		case "jnr":
+			c.IsNational = true
+		}
+		g.AddCompany(c)
+	}
+
+	for _, bc := range companies {
+		c := g.Companies[bc.id]
+		line := NewLine("line_"+bc.id, bc.id, bc.home, bc.to)
+		line.LengthKm = g.DistanceKm(bc.home, bc.to)
+		line.Fare = 200
+		line.TrainsPerDay = 10
+		c.AddLine(line)
+	}
+
+	g.InitAIs()
+	for _, ai := range g.AIs {
+		if ai != nil {
+			ai.HistoryMode = HistoryIgnore
+		}
+	}
+	// プレイヤー（阪急）を買収対象にしないため、東急の攻撃性を 0.9 未満に抑える
+	if ai := g.AIs["tokyu"]; ai != nil {
+		ai.Personality.Aggression = 0.85
+	}
+	return g, g.Companies["hankyu"]
+}
+
+// balanceStats は長期シミュレーションの集計値。
+type balanceStats struct {
+	active       int
+	dissolved    int
+	maCount      int
+	abandonCount int
+	playerCash   int64
+	negativeNet  int
+}
+
+// runBalance は指定ターン数だけシミュレーションし統計を返す。
+func runBalance(g *Game, turns int) balanceStats {
+	for i := 0; i < turns; i++ {
+		g.EndTurn()
+	}
+	var s balanceStats
+	for _, c := range g.Companies {
+		if c.Dissolved != nil {
+			s.dissolved++
+		} else {
+			s.active++
+		}
+		if c.NetAssets() < 0 {
+			s.negativeNet++
+		}
+	}
+	for _, e := range g.Events {
+		switch e.Type {
+		case EventSharesAcquired, EventTOBLaunched, EventMergeCompleted:
+			s.maCount++
+		case EventLineAbandoned:
+			s.abandonCount++
+		}
+	}
+	if pc := g.PlayerCompany(); pc != nil {
+		s.playerCash = pc.Cash
+	}
+	return s
+}
+
+// TestBalance_200Turns は 200 ターン後の会社数・M&A が目標範囲にあることを検証する。
+func TestBalance_200Turns(t *testing.T) {
+	g, _ := newBalanceGame(5)
+	before := len(g.Companies)
+
+	s := runBalance(g, 200)
+
+	t.Logf("200ターン後: 会社 %d → %d（解散 %d）, M&A %d, 廃線 %d, 資金 %s",
+		before, s.active, s.dissolved, s.maCount, s.abandonCount, FormatYen(s.playerCash))
+
+	if s.active < 15 || s.active > 20 {
+		t.Errorf("200ターン後の会社数 = %d, want 15〜20", s.active)
+	}
+	if s.maCount < 3 || s.maCount > 8 {
+		t.Errorf("200ターン後の M&A = %d, want 3〜8", s.maCount)
+	}
+	if s.abandonCount < 2 || s.abandonCount > 5 {
+		t.Errorf("200ターン後の廃線 = %d, want 2〜5", s.abandonCount)
+	}
+	if s.negativeNet > 0 {
+		t.Errorf("純資産が負の会社が %d 社（破綻）", s.negativeNet)
+	}
+}
+
+// TestBalance_500Turns は 500 ターン後も会社数が目標範囲で破綻しないことを検証する。
+func TestBalance_500Turns(t *testing.T) {
+	if testing.Short() {
+		t.Skip("long test")
+	}
+	g, _ := newBalanceGame(5)
+	before := len(g.Companies)
+
+	s := runBalance(g, 500)
+
+	t.Logf("500ターン後: 会社 %d → %d（解散 %d）, M&A %d, 廃線 %d, 資金 %s",
+		before, s.active, s.dissolved, s.maCount, s.abandonCount, FormatYen(s.playerCash))
+
+	if s.active < 10 || s.active > 15 {
+		t.Errorf("500ターン後の会社数 = %d, want 10〜15", s.active)
+	}
+	if s.negativeNet > 0 {
+		t.Errorf("純資産が負の会社が %d 社（破綻）", s.negativeNet)
+	}
+}
+
+// TestBalance_Deterministic はバランス世界が決定論的であることを検証する。
+func TestBalance_Deterministic(t *testing.T) {
+	a, _ := newBalanceGame(5)
+	b, _ := newBalanceGame(5)
+	sa := runBalance(a, 60)
+	sb := runBalance(b, 60)
+	if sa != sb {
+		t.Errorf("バランス世界が非決定: %+v vs %+v", sa, sb)
 	}
 }

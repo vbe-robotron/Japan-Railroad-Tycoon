@@ -1,14 +1,39 @@
 package core
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
+
+// zeroSource は常に 0 を返す決定論的な乱数源（テスト用）。
+//
+// M&A の確率判定（g.rng.Float64()）を必ず通過させるために使う。
+type zeroSource struct{}
+
+func (zeroSource) Int63() int64 { return 0 }
+func (zeroSource) Seed(int64)   {}
+
+// forceMAProbability は M&A の確率判定を確実に通過させる乱数源に差し替える。
+func forceMAProbability(g *Game) {
+	g.rng = rand.New(zeroSource{})
+}
+
+// aggressiveAI は M&A を実行できる高攻撃性の AI を返す。
+func aggressiveAI(companyID string) *AI {
+	p := DefaultPersonality(companyID)
+	p.Aggression = 0.9
+	return &AI{CompanyID: companyID, Personality: p}
+}
 
 // setupAIMAGame は M&A AI テスト用のゲームを返す。
 //
 // プレイヤー（player）、買収側（hankyu）、対象（hanshin）を用意する。
+// 乱数源は決定論的な zeroSource に固定する。
 func setupAIMAGame(t *testing.T) (*Game, *Company, *Company) {
 	t.Helper()
 	g := NewGame(1907, "player")
 	g.Date = Date{Year: 1910, Month: 1}
+	forceMAProbability(g)
 
 	player := NewCompany("player", "player", "プレイヤー")
 	player.IsPlayer = true
@@ -55,7 +80,7 @@ func TestAIMA_InsufficientCash(t *testing.T) {
 
 func TestAIMA_BuysShares(t *testing.T) {
 	g, hankyu, hanshin := setupAIMAGame(t)
-	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu")}
+	ai := aggressiveAI("hankyu")
 
 	evs := g.aiMA(hankyu, ai)
 
@@ -74,7 +99,7 @@ func TestAIMA_TenderOffer(t *testing.T) {
 	g, hankyu, hanshin := setupAIMAGame(t)
 	// 35% を保有済み（TOB 閾値超）
 	hankyu.Holding["hanshin"] = 3500
-	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu")}
+	ai := aggressiveAI("hankyu")
 
 	evs := g.aiMA(hankyu, ai)
 
@@ -97,7 +122,7 @@ func TestAIMA_Merge(t *testing.T) {
 	// 60% を保有済み（子会社）
 	hankyu.Holding["hanshin"] = 6000
 	hanshin.ParentID = hankyu.ID
-	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu")}
+	ai := aggressiveAI("hankyu")
 
 	evs := g.aiMA(hankyu, ai)
 

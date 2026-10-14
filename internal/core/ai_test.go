@@ -251,7 +251,7 @@ func TestRunAI_RunsNonPlayer(t *testing.T) {
 func TestRunAI_FullRoute(t *testing.T) {
 	// 財務→建設→運用→開発→M&A→廃線の全ルートを 1 回で通す。
 	g, c, line := setupAIAbandonGame(t)
-	c.Cash = 200_000_000
+	c.Cash = 300_000_000
 	line.ConsecutiveDeficitTurns = AbandonDeficitTurns
 
 	target := NewCompany("hanshin", "hanshin", "阪神")
@@ -261,7 +261,9 @@ func TestRunAI_FullRoute(t *testing.T) {
 	target.Region = "kansai"
 	g.AddCompany(target)
 
-	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu"), HistoryMode: HistoryIgnore}
+	ai := aggressiveAI("hankyu")
+	ai.HistoryMode = HistoryIgnore
+	forceMAProbability(g)
 	evs := g.runAI(c, ai)
 
 	if !hasEventType(evs, EventSharesAcquired) {

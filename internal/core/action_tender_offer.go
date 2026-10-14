@@ -39,7 +39,7 @@ func (a *TenderOfferAction) Validate(g *Game) error {
 	if g == nil {
 		return NewValidationError("GAME_NIL", "ゲームが初期化されていません", nil)
 	}
-	c := g.PlayerCompany()
+	c := g.actorCompany(a.ActorCompanyID)
 	if c == nil {
 		return NewValidationError("NO_PLAYER", "プレイヤー会社が存在しません", ErrNoPlayer)
 	}
@@ -87,7 +87,7 @@ func (a *TenderOfferAction) Apply(g *Game) ([]Event, error) {
 	if err := a.Validate(g); err != nil {
 		return nil, err
 	}
-	c := g.PlayerCompany()
+	c := g.actorCompany(a.ActorCompanyID)
 	target := g.Companies[a.TargetCompanyID]
 
 	needCount := tenderOfferNeed(c, target, a.TargetRatio)

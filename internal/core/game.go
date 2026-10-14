@@ -54,6 +54,17 @@ func (g *Game) PlayerCompany() *Company {
 	return g.Companies[g.PlayerID]
 }
 
+// actorCompany はアクションの実行者を返す。
+//
+// actorID が空ならプレイヤー会社（後方互換）、そうでなければその会社を返す。
+// 見つからなければ nil（呼び出し側は NO_PLAYER として扱う）。
+func (g *Game) actorCompany(actorID string) *Company {
+	if actorID == "" {
+		return g.PlayerCompany()
+	}
+	return g.Companies[actorID]
+}
+
 // AddCompany は会社を追加する。
 func (g *Game) AddCompany(c *Company) {
 	g.Companies[c.ID] = c

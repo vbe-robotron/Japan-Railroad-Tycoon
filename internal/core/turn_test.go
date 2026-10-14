@@ -358,3 +358,118 @@ func TestEndTurn_NoLines(t *testing.T) {
 		t.Errorf("路線なしで資金が変化した: before=%d, after=%d", before, c.Cash)
 	}
 }
+
+// newMAGame は M&A・廃線 AI の長期テスト用のゲームを返す。
+//
+// プレイヤー 1 社、高攻撃性の AI 3 社、低攻撃性で赤字路線を持つ対象 1 社を用意する。
+func newMAGame(seed int64) *Game {
+	g := NewGame(seed, "player")
+	g.Date = Date{Year: 1910, Month: 1}
+
+	cities := map[string][2]float64{
+		"umeda": {34.70, 135.50},
+		"kobe":  {34.69, 135.20},
+		"kyoto": {35.01, 135.77},
+		"osaka": {34.65, 135.50},
+		"nara":  {34.68, 135.80},
+		"otsu":  {35.00, 135.87},
+	}
+	for id, ll := range cities {
+		g.AddCity(&City{ID: id, Name: id, Population: 1_000_000, LandValue: 50, Lat: ll[0], Lon: ll[1]})
+	}
+
+	player := NewCompany("player", "player", "プレイヤー")
+	player.IsPlayer = true
+	player.Cash = 100_000_000
+	g.AddCompany(player)
+
+	aggressors := []string{"hankyu", "tokyu", "meitetsu"}
+	coords := [][2]string{{"umeda", "kobe"}, {"kyoto", "otsu"}, {"osaka", "nara"}}
+	for i, id := range aggressors {
+		c := NewCompany(id, id, id)
+		c.Cash = 500_000_000
+		c.CreditLine = 200_000_000
+		c.TotalShares = 10000
+		c.StockPrice = 1000
+		c.Region = "kansai"
+		g.AddCompany(c)
+		line := NewLine("line_"+id, id, coords[i][0], coords[i][1])
+		line.LengthKm = g.DistanceKm(coords[i][0], coords[i][1])
+		c.AddLine(line)
+	}
+
+	hanshin := NewCompany("hanshin", "hanshin", "阪神")
+	hanshin.Cash = 100_000_000
+	hanshin.TotalShares = 10000
+	hanshin.StockPrice = 1000
+	hanshin.Region = "kansai"
+	g.AddCompany(hanshin)
+	defLine := NewLine("line_hanshin", "hanshin", "osaka", "otsu")
+	defLine.LengthKm = g.DistanceKm("osaka", "otsu")
+	defLine.ConsecutiveDeficitTurns = AbandonDeficitTurns
+	hanshin.AddLine(defLine)
+
+	g.InitAIs()
+	for _, ai := range g.AIs {
+		if ai != nil {
+			ai.HistoryMode = HistoryIgnore
+		}
+	}
+	return g
+}
+
+func TestEndTurn_WithMA(t *testing.T) {
+	g := newMAGame(1907)
+	beforeActive := len(g.Companies)
+
+	for i := 0; i < 200; i++ {
+		g.EndTurn()
+	}
+
+	dissolved := 0
+	for _, c := range g.Companies {
+		if c.Dissolved != nil {
+			dissolved++
+		}
+	}
+	active := len(g.Companies) - dissolved
+
+	maCount := 0
+	for _, e := range g.Events {
+		switch e.Type {
+		case EventSharesAcquired, EventTOBLaunched, EventMergeCompleted:
+			maCount++
+		}
+	}
+	abandonCount := countByType(g.Events, EventLineAbandoned)
+
+	if dissolved == 0 {
+		t.Error("200ターンで M&A が発生しなかった（合併による会社消滅なし）")
+	}
+	if maCount == 0 {
+		t.Error("M&A イベントが記録されていない")
+	}
+	if abandonCount == 0 {
+		t.Error("廃線が発生しなかった")
+	}
+	t.Logf("200ターン後: 稼働会社 %d → %d（解散 %d）, M&A %d 件, 廃線 %d 件",
+		beforeActive, active, dissolved, maCount, abandonCount)
+}
+
+func TestEndTurn_WithMA_Deterministic(t *testing.T) {
+	a := newMAGame(1907)
+	b := newMAGame(1907)
+
+	for i := 0; i < 60; i++ {
+		ea := a.EndTurn()
+		eb := b.EndTurn()
+		if len(ea) != len(eb) {
+			t.Fatalf("iteration %d: events 数が不一致: %d != %d", i, len(ea), len(eb))
+		}
+		for j := range ea {
+			if ea[j].ID != eb[j].ID || ea[j].Message != eb[j].Message || ea[j].Type != eb[j].Type {
+				t.Fatalf("iteration %d event %d: 不一致: %+v vs %+v", i, j, ea[j], eb[j])
+			}
+		}
+	}
+}

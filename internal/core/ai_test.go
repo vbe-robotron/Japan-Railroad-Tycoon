@@ -247,3 +247,27 @@ func TestRunAI_RunsNonPlayer(t *testing.T) {
 		t.Errorf("hankyu の路線 = %d, want 1", len(c.Lines))
 	}
 }
+
+func TestRunAI_FullRoute(t *testing.T) {
+	// 財務→建設→運用→開発→M&A→廃線の全ルートを 1 回で通す。
+	g, c, line := setupAIAbandonGame(t)
+	c.Cash = 200_000_000
+	line.ConsecutiveDeficitTurns = AbandonDeficitTurns
+
+	target := NewCompany("hanshin", "hanshin", "阪神")
+	target.Cash = 50_000_000
+	target.TotalShares = 10000
+	target.StockPrice = 1000
+	target.Region = "kansai"
+	g.AddCompany(target)
+
+	ai := &AI{CompanyID: "hankyu", Personality: DefaultPersonality("hankyu"), HistoryMode: HistoryIgnore}
+	evs := g.runAI(c, ai)
+
+	if !hasEventType(evs, EventSharesAcquired) {
+		t.Error("M&A（株取得）が実行されなかった")
+	}
+	if !hasEventType(evs, EventLineAbandoned) {
+		t.Error("廃線が実行されなかった")
+	}
+}

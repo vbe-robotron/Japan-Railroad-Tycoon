@@ -68,6 +68,8 @@ func (g *Game) aiActionOrder() []string {
 //  3. 建設（路線敷設）
 //  4. 運用（運賃調整・車両購入）
 //  5. 開発（施設建設）
+//  6. M&A（株取得・TOB・合併）
+//  7. 廃線（赤字路線の廃止）
 func (g *Game) runAI(c *Company, ai *AI) []Event {
 	var events []Event
 
@@ -89,6 +91,12 @@ func (g *Game) runAI(c *Company, ai *AI) []Event {
 
 	// 5. 開発
 	events = append(events, g.aiDevelop(c, ai)...)
+
+	// 6. M&A
+	events = append(events, g.aiMA(c, ai)...)
+
+	// 7. 廃線
+	events = append(events, g.aiAbandon(c, ai)...)
 
 	return events
 }

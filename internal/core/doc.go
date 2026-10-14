@@ -65,6 +65,8 @@
 //   - aiOperate: 運用 AI（運賃調整・車両購入）
 //   - aiFinance: 財務 AI（借入・返済）
 //   - aiDevelop: 開発 AI（施設建設）
+//   - aiMA: M&A AI（株取得・TOB・合併）
+//   - aiAbandon: 廃線 AI（赤字路線の廃止）
 //   - HistoricalLine: 史実路線（data から注入）
 //
 // 経済シミュレーション:

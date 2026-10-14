@@ -31,9 +31,10 @@
 - [x] Phase 8-1: AI基盤 + 史実ルート追従
 - [x] Phase 7-3: 史実初期状態 + 全国データ拡張
 - [x] Phase 8-2: 建設AI + 運用AI
+- [x] Phase 8-3: M&A AI + 廃線 AI
 
 ## 進行中
-- [ ] Phase 8-3: M&A AI + 廃線 AI
+- [ ] Phase 9: バランス調整
 
 ## Phase 1-8-2.5 の目標
 
@@ -433,3 +434,27 @@
     `AutoBuildHistoricalLine` の 5 件を追加。カバレッジ `internal/core`
     98.2% / `internal/data` 98.5%、`-race` 全通過。core の import は
     従来どおり純粋。
+- Phase 8-3 の M&A AI + 廃線 AI:
+  - `core/ai_ma.go` を追加。`aiMA` は攻撃性 `Aggression >= 0.5` かつ
+    資金 `>= 5000 万円` のとき買収対象を選び、保有比率 50% 超なら合併、
+    30% 超なら TOB（`TenderOfferAction`）、それ以外は段階的に株取得
+    （1 ターン最大 20%）する。対象選定は会社 ID 昇順の走査で決定論を担保。
+  - `core/ai_abandon.go` を追加。`aiAbandon` は経済ゲート（連続赤字 24
+    ターン or 累積損失 ≥ 簿価 30%）と政治ゲート（沿線都市の政治圧力
+    ≤ 0.7）を満たす路線を 1 ターン 1 本廃止する。`Conservatism > 0.7`
+    の保守的会社は廃線しない。
+  - 既存の `BuySharesAction` / `TenderOfferAction` / `MergeAction` /
+    `AbandonLineAction` はプレイヤー会社を実行者に固定していたため、
+    省略可能な `ActorCompanyID` を追加し `actorCompany` で解決するように
+    変更（空なら従来どおりプレイヤー。後方互換）。AI は自社 ID を設定して
+    同アクションを再利用し、株取得・TOB・合併・廃線を実行する。
+  - 国鉄（`IsNational`）と自社・解散済み会社は買収対象外。プレイヤー会社は
+    `Aggression >= 0.9` のときのみ対象（敵対的買収は慎重に）。
+  - `runAI` に M&A → 廃線を追加（史実→財務→建設→運用→開発→M&A→廃線）。
+  - テスト: `ai_ma_test.go` 16 件、`ai_abandon_test.go` 8 件、
+    `TestRunAI_FullRoute`、`TestEndTurn_WithMA`（200 ターン）、
+    `TestEndTurn_WithMA_Deterministic` を追加。カバレッジ `internal/core`
+    98.3%、`-race` 全通過。
+  - 動作確認（seed 1907・200 ターン）: 稼働会社 5 → 2（解散 3）、
+    M&A 25 件、廃線 4 件。AI が株取得・TOB・合併・廃線を自律実行し、
+    破綻しない。

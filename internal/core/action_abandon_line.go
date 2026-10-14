@@ -38,7 +38,7 @@ func (a *AbandonLineAction) Validate(g *Game) error {
 	if g == nil {
 		return NewValidationError("GAME_NIL", "ゲームが初期化されていません", nil)
 	}
-	c := g.PlayerCompany()
+	c := g.actorCompany(a.ActorCompanyID)
 	if c == nil {
 		return NewValidationError("NO_PLAYER", "プレイヤー会社が存在しません", ErrNoPlayer)
 	}
@@ -98,7 +98,7 @@ func (a *AbandonLineAction) Apply(g *Game) ([]Event, error) {
 		return nil, err
 	}
 
-	c := g.PlayerCompany()
+	c := g.actorCompany(a.ActorCompanyID)
 	line := c.FindLine(a.LineID)
 	from := g.Cities[line.From]
 	to := g.Cities[line.To]

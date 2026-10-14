@@ -102,20 +102,30 @@ type RepayDebtAction struct {
 // ────────────────────────────────────────────
 
 // BuySharesAction は他社株を取得する。
+//
+// ActorCompanyID は実行者を表す。空ならプレイヤー会社を実行者とする
+// （プレイヤー操作との後方互換）。AI は自社IDを設定する。
 type BuySharesAction struct {
+	ActorCompanyID  string `json:"actor_company_id,omitempty"`
 	TargetCompanyID string `json:"target_company_id"`
 	Count           int    `json:"count"`
 }
 
 // TenderOfferAction は TOB を仕掛ける。
+//
+// ActorCompanyID は実行者を表す（空ならプレイヤー）。
 type TenderOfferAction struct {
+	ActorCompanyID  string  `json:"actor_company_id,omitempty"`
 	TargetCompanyID string  `json:"target_company_id"`
 	Premium         float64 `json:"premium"`      // 1.1 = 10%上乗せ
 	TargetRatio     float64 `json:"target_ratio"` // 0.51
 }
 
 // MergeAction は他社と合併する。
+//
+// ActorCompanyID は実行者を表す（空ならプレイヤー）。
 type MergeAction struct {
+	ActorCompanyID  string  `json:"actor_company_id,omitempty"`
 	TargetCompanyID string  `json:"target_company_id"`
 	Ratio           float64 `json:"ratio"`
 	Name            string  `json:"name"` // 新社名
@@ -174,9 +184,12 @@ type AcceptSubsidyAction struct {
 // ────────────────────────────────────────────
 
 // AbandonLineAction は路線を廃止する。
+//
+// ActorCompanyID は実行者を表す（空ならプレイヤー）。
 type AbandonLineAction struct {
-	LineID string `json:"line_id"`
-	Reason string `json:"reason"` // "economic"|"disaster"|"political"|"wartime"
+	ActorCompanyID string `json:"actor_company_id,omitempty"`
+	LineID         string `json:"line_id"`
+	Reason         string `json:"reason"` // "economic"|"disaster"|"political"|"wartime"
 }
 
 // RestoreAbandonedLineAction は廃線を復活させる。
